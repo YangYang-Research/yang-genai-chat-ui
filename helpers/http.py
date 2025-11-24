@@ -6,11 +6,11 @@ from helpers.utils import Utils
 from helpers.config import AppConfig, AWSConfig, ChatConfig
 
 class MakeRequest(object):
-    def __init__(self, app_conf: AppConfig, aws_conf: AWSConfig, chat_conf: ChatConfig):
-        self.app_conf = app_conf
-        self.aws_conf = aws_conf
-        self.chat_conf = chat_conf
-        self.aws_secret_manager = AWSSecretManager(app_conf, aws_conf)
+    def __init__(self):
+        self.app_conf = AppConfig()
+        self.aws_conf = AWSConfig()
+        self.chat_conf = ChatConfig()
+        self.aws_secret_manager = AWSSecretManager()
 
     def stream_chat_completions(self, chat_model: str, history: dict, prompt: str, attachments: list):
         """
@@ -111,7 +111,7 @@ class MakeRequest(object):
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.aws_secret_manager.get_secret(self.chat_conf.chat_auth_key_name)}",
+            "Authorization": f"Basic {self.aws_secret_manager.get_secret(self.chat_conf.chat_auth_key_name)}",
         }
 
         try:
@@ -130,7 +130,7 @@ class MakeRequest(object):
         """
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.aws_secret_manager.get_secret(self.chat_conf.chat_auth_key_name)}",
+            "Authorization": f"Basic {self.aws_secret_manager.get_secret(self.chat_conf.chat_auth_key_name)}",
         }
         try:
             response = requests.post(self.chat_conf.chat_service_api + endpoint, headers=headers, json=data, timeout=self.chat_conf.chat_timeout_seconds)

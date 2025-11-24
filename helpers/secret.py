@@ -3,10 +3,11 @@ from botocore.exceptions import ClientError
 from helpers.config import AppConfig, AWSConfig
 from helpers.loog import logger
 
-class AWSSecretManager:
-    def __init__(self, app_conf: AppConfig, aws_conf: AWSConfig):
-        self.app_conf = app_conf
-        self.aws_conf = aws_conf
+class AWSSecretManager(object):
+
+    def __init__(self):
+        self.app_conf = AppConfig()
+        self.aws_conf = AWSConfig()
         self._client = None
 
     @property

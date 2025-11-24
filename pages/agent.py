@@ -9,7 +9,7 @@ from langchain_community.chat_message_histories import StreamlitChatMessageHisto
 app_conf = AppConfig()
 aws_conf = AWSConfig()
 chat_conf = ChatConfig()
-make_request = MakeRequest(app_conf, aws_conf, chat_conf)
+make_request = MakeRequest()
 utils = Utils()
 
 def init_session_state(default_model: str = "claude"):
@@ -172,7 +172,6 @@ def main():
         logger.error(f"An error occurred: {e}")
         st.error("An unexpected error occurred. Please refresh and try again.")
         st.exception(e)
-
 
 if __name__ == "__main__":
     main()

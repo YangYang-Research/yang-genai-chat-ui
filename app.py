@@ -34,12 +34,6 @@ class App:
         self._set_header()
         self._init_session_state()
 
-        st.set_page_config(
-            page_title=self.config.page_title,
-            page_icon=self.config.favicon_path,
-            layout="wide",
-        )
-
         # Define pages
         home_page = st.Page("pages/home.py", title="Home", icon="🚀", url_path="/")
         agent_page = st.Page("pages/agent.py", title="Cell Agent", icon="💬", url_path="/cell-agent")

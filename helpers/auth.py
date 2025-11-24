@@ -7,7 +7,7 @@ from helpers.secret import AWSSecretManager
 
 app_conf = AppConfig()
 aws_conf = AWSConfig()
-aws_secret_manager = AWSSecretManager(app_conf, aws_conf)
+aws_secret_manager = AWSSecretManager()
 cookie_manager = stx.CookieManager()
 
 jwt_secret_key = aws_secret_manager.get_secret(app_conf.jwt_key_name)
