@@ -1,29 +1,14 @@
 import streamlit as st
 import uuid
 import base64
-import yaml
-from yaml.loader import SafeLoader
-import streamlit_authenticator as stauth
 from helpers.config import AppConfig, APIConfig
 from helpers.loog import logger
 from helpers.http import MakeRequest
 from passlib.context import CryptContext
 from helpers.auth import verify_jwt_token, create_jwt_cookie
+
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-with open('auth_config.yml') as file:
-    config = yaml.load(file, Loader=SafeLoader)
-
-# stauth.Hasher.hash_passwords(config['credentials'])
-# authenticator = stauth.Authenticate(
-#     config['credentials'],
-#     config['cookie']['name'],
-#     config['cookie']['key'],
-#     config['cookie']['expiry_days'],
-#     auto_hash=False
-# )
-
-# ------------- Login Page Class -------------
 class LoginPage:
     def __init__(self):
         self.app_conf = AppConfig()
@@ -59,18 +44,18 @@ class LoginPage:
                 })
 
                 jwt_token = resp_json.get("jwt_token")
-                
-                if jwt_token:
+
+                user_info = verify_jwt_token(jwt_token)
+
+                if jwt_token and user_info:
                     st.session_state["authentication_status"] = True
 
                 if st.session_state.get("authentication_status"):
-                    user_info = verify_jwt_token(jwt_token)
-                    if user_info:
-                        create_jwt_cookie(jwt_token)
-                        st.session_state["userinfo"] = user_info
-                        st.session_state["chat_session_id"] = uuid.uuid1()
-                        st.success("Login successful!")
-                        st.rerun()
+                    create_jwt_cookie(jwt_token)
+                    st.session_state["userinfo"] = user_info
+                    st.session_state["chat_session_id"] = uuid.uuid1()
+                    st.success("Login successful!")
+                    st.rerun()
                 elif st.session_state.get("authentication_status") is False:
                     st.error("Username/password is incorrect")
                 else:
