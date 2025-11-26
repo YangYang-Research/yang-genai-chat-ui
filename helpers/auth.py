@@ -12,9 +12,18 @@ cookie_manager = stx.CookieManager()
 
 jwt_secret_key = aws_secret_manager.get_secret(app_conf.jwt_key_name)
 
-def verify_jwt_cookie(jwt_cookie: str) -> Optional[Dict]:
+def create_jwt_cookie(jwt_token: str):
+    cookie_manager.set(
+        cookie='yang-cookie',
+        val=jwt_token,
+        path="/",
+        key=jwt_secret_key,
+        secure=True,
+    )
+        
+def verify_jwt_token(jwt_token: str) -> Optional[Dict]:
     try:
-        payload = jwt.decode(jwt_cookie, jwt_secret_key, algorithms=["HS256"])
+        payload = jwt.decode(jwt_token, jwt_secret_key, algorithms=["HS256"])
         return payload
     except jwt.ExpiredSignatureError:
         st.warning("Session expired. Please log in again.")
@@ -23,28 +32,45 @@ def verify_jwt_cookie(jwt_cookie: str) -> Optional[Dict]:
         st.error("Invalid token. Please log in again.")
         return None
     
-def clear_jwt_cookie(cookie_name: str):
-    cookie_manager.delete(cookie_name)
+def clear_cookie():
+    cookie_manager.delete('yang-cookie')
 
 def get_logout():
     st.session_state["authentication_status"] = None
-    clear_jwt_cookie("cell")
+    clear_cookie()
+    return True
+
+def check_user_login(extend_key: str) -> bool:
+    all_cookies = cookie_manager.get_all(key="cookie-" + extend_key)
+
+    if 'yang-cookie' not in all_cookies:
+        st.session_state["authentication_status"] = False
+        return False
+
+    jwt_cookie = all_cookies['yang-cookie']
+
+    user_info = verify_jwt_token(jwt_cookie)
+
+    if user_info:
+        st.session_state["authentication_status"] = True
+        return True
+
+    st.session_state["authentication_status"] = False
+    return False
 
 def get_user_info(extend_key: str) -> Optional[Dict]:
-    all_cookies = cookie_manager.get_all(key="cookie-"+extend_key)
+    all_cookies = cookie_manager.get_all(key="cookie-" + extend_key)
 
-    if 'cell' in all_cookies:
-        jwt_cookie = all_cookies['cell']
-    
-    if st.session_state.get("authentication_status"):
-        user_info = st.session_state.get("username")
-        if not user_info:
-            user_info = verify_jwt_cookie(jwt_cookie)
+    if 'yang-cookie' not in all_cookies:
+        st.rerun()
+
+    jwt_cookie = all_cookies['yang-cookie']
+
+    user_info = verify_jwt_token(jwt_cookie)
+
+    if user_info:
         return user_info
-    elif jwt_cookie:
-        user_info = verify_jwt_cookie(jwt_cookie)
-        if user_info:
-            return user_info
-    else:
-        clear_jwt_cookie("cell")
-        return None
+    
+    session_user = st.session_state.get("userinfo")
+    create_jwt_cookie(session_user)
+    return session_user

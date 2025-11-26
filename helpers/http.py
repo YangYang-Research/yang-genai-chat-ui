@@ -3,13 +3,13 @@ import streamlit as st
 from helpers.loog import logger
 from helpers.secret import AWSSecretManager
 from helpers.utils import Utils
-from helpers.config import AppConfig, AWSConfig, ChatConfig
+from helpers.config import AppConfig, AWSConfig, APIConfig
 
 class MakeRequest(object):
     def __init__(self):
         self.app_conf = AppConfig()
         self.aws_conf = AWSConfig()
-        self.chat_conf = ChatConfig()
+        self.api_conf = APIConfig()
         self.aws_secret_manager = AWSSecretManager()
 
     def stream_chat_completions(self, chat_model: str, history: dict, prompt: str, attachments: list):
@@ -111,32 +111,59 @@ class MakeRequest(object):
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Basic {self.aws_secret_manager.get_secret(self.chat_conf.chat_auth_key_name)}",
+            "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
         }
 
         try:
-            with requests.post(self.chat_conf.chat_service_api + self.chat_conf.chat_agent_completions_endpoint, headers=headers, json=payload, stream=True, timeout=self.chat_conf.chat_timeout_seconds) as r:
+            with requests.post(self.api_conf.api_service + self.api_conf.chat_agent_completions_endpoint, headers=headers, json=payload, stream=True, timeout=self.api_conf.api_timeout_seconds) as r:
                 r.raise_for_status()
                 for chunk in r.iter_content(chunk_size=None):
                     if chunk:
                         yield chunk.decode("utf-8")
         except requests.exceptions.RequestException as e:
-            logger.error(f"[FE-CHAT_SERVICE] Stream error: {e}")
-            yield f"\n[Error] Unable connect to chat service. Please try again."
+            logger.error(f"[FE->BE] Stream error: {e}")
+            yield f"\n[Error] Unable connect to backend service. Please try again."
     
-    def post(self, endpoint: str, data: dict):
+    def post_streaming(self, endpoint: str, data: dict):
         """
         Send a POST request to the specified endpoint with the given data.
         """
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Basic {self.aws_secret_manager.get_secret(self.chat_conf.chat_auth_key_name)}",
+            "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
         }
         try:
-            response = requests.post(self.chat_conf.chat_service_api + endpoint, headers=headers, json=data, timeout=self.chat_conf.chat_timeout_seconds)
+            response = requests.post(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            logger.error(f"[FE-CHAT_SERVICE] POST error: {e}")
-            yield f"\n[Error] Unable connect to chat service. Please try again."
-            
+            logger.error(f"[FE->BE] POST error: {e}")
+            yield f"\n[Error] Unable connect to backend service. Please try again."
+    
+    def get(self, endpoint: str, param: str | int):
+        """
+        Send a GET request to the specified endpoint with optional parameter.
+        """
+        headers = {
+            "Content-Type": "application/json",
+            "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
+        }        
+        try:
+            response = requests.get(self.api_conf.api_service + endpoint + param, headers=headers, timeout=self.api_conf.api_timeout_seconds)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"[FE->BE] GET error: {e}")
+    
+    def post(self, endpoint: str, data: dict):
+        """
+        Send a POST request to the specified endpoint.
+        """
+        headers = {
+            "Content-Type": "application/json",
+            "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
+        }        
+        try:
+            response = requests.post(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"[FE->BE] GET error: {e}")

@@ -1,7 +1,7 @@
 import uuid
 import streamlit as st
 from helpers.config import AppConfig
-from helpers.auth import get_logout, get_user_info
+from helpers.auth import get_logout, get_user_info, check_user_login
 from helpers.loog import logger
 
 # ------------- Application Class -------------
@@ -24,6 +24,8 @@ class App:
             st.session_state["authentication_status"] = None
         if "chat_session_id" not in st.session_state:
             st.session_state["chat_session_id"] = None
+        if "userinfo" not in st.session_state:
+            st.session_state["userinfo"] = None
 
     def logout_page(self):
         get_logout()
@@ -42,10 +44,10 @@ class App:
         blank_page = st.Page("pages/blank.py", title="Blank", icon="📄", url_path="/blank")
 
         login_page = st.Page("pages/login.py", title="Login", icon="🔐", url_path="/login")
-        logout_page = st.Page(self.logout_page, title="Logout", icon="🚪", url_path="/logout")
+        logout_page = st.Page("pages/logout.py", title="Logout", icon="🚪", url_path="/logout")
 
-        if st.session_state.get("authentication_status"):
-            user_info = get_user_info(extend_key="app")
+        if st.session_state.get("authentication_status") or check_user_login(extend_key="app-check-login"):
+            user_info = get_user_info(extend_key="app-after-auth")
 
             if st.session_state.get("chat_session_id") is None:
                 st.session_state["chat_session_id"] = uuid.uuid1()

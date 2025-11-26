@@ -15,9 +15,8 @@ class AppConfig(object):
     icon_path: Path = Path(__file__).parent.parent / "assets" / "logo.png"
     favicon_path: Path = Path(__file__).parent.parent / "assets" / "favicon.ico"
     
-    app_name: str = str(os.getenv("APP_NAME", "Cell"))
-    agent_name: str = str(os.getenv("AGENT_NAME", "Cell Agent"))
-    page_title: str = str(os.getenv("PAGE_TITLE", "Cell - GenAI Chat UI"))
+    app_name: str = str(os.getenv("APP_NAME", ""))
+    page_title: str = str(os.getenv("PAGE_TITLE", ""))
     
     log_max_size: int = int(os.getenv("LOG_MAX_SIZE", "10000000"))  # in bytes
     log_max_backups: int = int(os.getenv("LOG_MAX_BACKUPS", "5"))  # number of backup files
@@ -41,20 +40,25 @@ class AWSConfig(object):
     aws_secret_name: str = os.getenv("AWS_SECRET_NAME", "")
 
 @dataclass
-class ChatConfig(object):
+class APIConfig(object):
     """Chat configuration class."""
 
-    chat_service_api: str = os.getenv("CHAT_SERVICE_API", "http://localhost:8000/v1/")
-    chat_auth_key_name: str = os.getenv("CHAT_SERVICE_AUTH_KEY_NAME", "cell_auth_key")
-    chat_timeout_seconds: int = int(os.getenv("CHAT_SERVICE_TIMEOUT_SECONDS", "300"))
+    api_service: str = os.getenv("API_SERVICE", "")
+    api_auth_key_name: str = os.getenv("API_AUTH_KEY_NAME", "")
+    api_timeout_seconds: int = int(os.getenv("API_TIMEOUT_SECONDS", "300"))
     chat_model_support: List[str] = field(default_factory=lambda: ["claude", "llama", "gpt-oss"])
     max_response_tokens: int = int(os.getenv("MAX_RESPONSE_TOKENS", "512"))
     temperature: float = float(os.getenv("TEMPERATURE", "0.7"))
     top_p: float = float(os.getenv("TOP_P", "0.9"))
 
-    """Chat service endpoint."""
+    """API service endpoint."""
     chat_agent_completions_endpoint: str = "chat/agent/completions"
     chat_feedback_endpoint: str = "chat/feedback"
+    agent_endpoint: str = "agents/"
+    llm_endpoint: str = "llms/"
+    user_endpoint: str = "users/"
+    tool_endpoint: str = "tools/"
+    login_endpoint: str = "authentication/login"
 
 @dataclass
 class LogConfig(object):
