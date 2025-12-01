@@ -1,4 +1,5 @@
 import re
+import uuid
 import base64
 from enum import Enum
 from typing import Optional
@@ -192,3 +193,7 @@ class Utils:
         sanitized = sanitized.strip()
 
         return sanitized
+    
+    def generate_session_uuid(self) -> str:
+        """Generate a unique identifier string."""
+        return str(uuid.uuid4())

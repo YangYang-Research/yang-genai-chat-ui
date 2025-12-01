@@ -1,6 +1,7 @@
 import streamlit as st
 import uuid
 import base64
+from helpers.utils import Utils
 from helpers.config import AppConfig, APIConfig
 from helpers.loog import logger
 from helpers.http import MakeRequest
@@ -13,6 +14,7 @@ class LoginPage:
     def __init__(self):
         self.app_conf = AppConfig()
         self.api_conf = APIConfig()
+        self.utils = Utils()
         self.make_request = MakeRequest()
 
     def display(self):
@@ -53,8 +55,8 @@ class LoginPage:
                 if st.session_state.get("authentication_status"):
                     create_jwt_cookie(jwt_token)
                     st.session_state["userinfo"] = user_info
-                    st.session_state["chat_session_id"] = uuid.uuid1()
-                    st.success("Login successful!")
+                    st.session_state["chat_session_id"] = self.utils.generate_session_uuid()
+                    st.toast("Login successful!", icon="✅")
                     st.rerun()
                 elif st.session_state.get("authentication_status") is False:
                     st.error("Username/password is incorrect")

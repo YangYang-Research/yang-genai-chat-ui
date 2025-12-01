@@ -140,7 +140,7 @@ class MakeRequest(object):
             logger.error(f"[FE->BE] POST error: {e}")
             yield f"\n[Error] Unable connect to backend service. Please try again."
     
-    def get(self, endpoint: str, param: str | int):
+    def get(self, endpoint: str, param: str | int = None):
         """
         Send a GET request to the specified endpoint with optional parameter.
         """
@@ -149,7 +149,7 @@ class MakeRequest(object):
             "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
         }        
         try:
-            response = requests.get(self.api_conf.api_service + endpoint + param, headers=headers, timeout=self.api_conf.api_timeout_seconds)
+            response = requests.get(self.api_conf.api_service + endpoint, headers=headers, params=param, timeout=self.api_conf.api_timeout_seconds)
             return response.json()
         except requests.exceptions.RequestException as e:
             logger.error(f"[FE->BE] GET error: {e}")
