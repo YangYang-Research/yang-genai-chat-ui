@@ -167,3 +167,18 @@ class MakeRequest(object):
             return response.json()
         except requests.exceptions.RequestException as e:
             logger.error(f"[FE->BE] GET error: {e}")
+    
+    def put(self, endpoint: str, data: dict):
+        """
+        Send a PUT request to the specified endpoint.
+        """
+        print(endpoint, data)  # DEBUG
+        headers = {
+            "Content-Type": "application/json",
+            "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
+        }        
+        try:
+            response = requests.put(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"[FE->BE] GET error: {e}")

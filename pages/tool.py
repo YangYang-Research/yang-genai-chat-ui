@@ -18,18 +18,11 @@ class ToolPage:
                 st.write("No tool selected")
                 return
 
-            if dialog_type == "A":
-                self.custom_dialog_a(tool)
-            elif dialog_type == "B":
-                self.custom_dialog_b(tool)
-            elif dialog_type == "C":
-                self.custom_dialog_c(tool)
-            else:
-                st.write("Dialog type Z")
+            self.custom_dialog(tool, dialog_type)
 
         self.universal_dialog = universal_dialog
 
-    def custom_dialog_a(self, tool):
+    def custom_dialog(self, tool, dialog_type):
         st.write(f"{tool['logo']} {tool['display_name']}")
         dialog_key = f"tool_{tool['id']}_dialog_status"
 
@@ -46,77 +39,84 @@ class ToolPage:
             horizontal=True,
         )
 
+        if dialog_type == "A":
+            pass
+        elif dialog_type == "B":
+            input_api_key = st.text_input("Enter your API Key:", key=f"api_{tool['id']}", value=tool.get('api_key', ''))
+            input_cse_id = st.text_input("Enter your CSE ID:", key=f"cse_{tool['id']}", value=tool.get('cse_id', ''))
+        elif dialog_type == "C":
+            input_api_key = st.text_input("Enter your API Key:", key=f"api_{tool['id']}", value=tool.get('api_key', ''))
+        elif dialog_type == "D":
+            input_client_id = st.text_input("Enter your Client ID:", key=f"client_id_{tool['id']}", value=tool.get('client_id', ''))
+            input_client_secret = st.text_input("Enter your Client Secret:", key=f"client_secret_{tool['id']}", value=tool.get('client_secret', ''), type="password")
+        elif dialog_type == "E":
+            input_client_id = st.text_input("Enter your Reddit Client ID:", key=f"reddit_client_id_{tool['id']}", value=tool.get('client_id', ''))
+            input_client_secret = st.text_input("Enter your Reddit Client Secret:", key=f"reddit_client_secret_{tool['id']}", value=tool.get('client_secret', ''), type="password")
+            input_user_agent = st.text_input("Enter your Reddit User Agent:", key=f"reddit_user_agent_{tool['id']}", value=tool.get('user_agent', ''))
+        elif dialog_type == "F":
+            input_host = st.text_input("Enter your Searx Instance URL:", key=f"host_instance_{tool['id']}", value=tool.get('host', ''))
+        else:
+            pass
+
         # Save button
         if st.button("Save", key=f"save_{tool['id']}"):
             is_enable = selected_action == "Enable"
             st.session_state[dialog_key] = is_enable
             st.session_state[f"tool_{tool['id']}_enable_status"] = is_enable
 
-            # Đóng dialog
+            if dialog_type == "A":
+                pass
+            elif dialog_type == "B":
+                if is_enable and not input_api_key or not input_cse_id:
+                    st.error("API Key and CSE ID are required.")
+                    return
+            elif dialog_type == "C":
+                if is_enable and not input_api_key:
+                    st.error("API Key is required.")
+                    return
+            elif is_enable and dialog_type == "D":
+                if not input_client_id or not input_client_secret:
+                    st.error("Client ID and Client Secret are required.")
+                    return
+            elif is_enable and dialog_type == "E":
+                if not input_client_id or not input_client_secret or not input_user_agent:
+                    st.error("Reddit Client ID, Client Secret, and User Agent are required.")
+                    return
+            elif is_enable and dialog_type == "F":
+                if not input_host:
+                    st.error("Searx Instance URL is required.")
+                    return
+            else:
+                pass
+
+            payload = {
+                "name": tool["name"],
+                "display_name": tool["display_name"],
+                "logo": tool["logo"],
+                "description": tool["description"],
+                "tags": tool["tags"],
+                "status": "enable" if is_enable else "disable",
+                "trashed": False,
+                "host": input_host if 'input_host' in locals() else None,
+                "api_key": input_api_key if 'input_api_key' in locals() else None,
+                "cse_id": input_cse_id if 'input_cse_id' in locals() else None,
+                "client_id": input_client_id if 'input_client_id' in locals() else None,
+                "client_secret": input_client_secret if 'input_client_secret' in locals() else None,
+                "user_agent": input_user_agent if 'input_user_agent' in locals() else None
+            }
+
+            resp_json = self.make_request.put(endpoint=self.api_conf.tool_endpoint + str(tool["id"]), data=payload)
+            tool_id = resp_json.get("id", None)
+            if tool_id is None:
+                st.error("Failed to update tool configuration.")
+                return
+            
             st.session_state["dialog_open"] = False
             st.session_state["current_tool"] = None
             st.session_state["dialog_type"] = None
 
-            st.success(f"Tool '{tool['display_name']}' updated to {selected_action}")
-            st.rerun()  # rerun sau khi save
-
-    def custom_dialog_b(self, tool):
-        st.write(f"{tool['logo']} {tool['display_name']}")
-        dialog_key = f"tool_{tool['id']}_dialog_status"
-
-        if dialog_key not in st.session_state:
-            st.session_state[dialog_key] = tool["status"] == "enable"
-
-        input_api_key = st.text_input("Enter your API Key:", key=f"api_{tool['id']}")
-        input_cse_id = st.text_input("Enter your CSE ID:", key=f"cse_{tool['id']}")
-
-        selected_action = st.radio(
-            "Select action:",
-            options=["Enable", "Disable"],
-            index=0 if st.session_state[dialog_key] else 1,
-            key=f"radio_{tool['id']}_dialog",
-            horizontal=True,
-        )
-
-        if st.button("Save", key=f"save_{tool['id']}"):
-            if input_api_key and input_cse_id:
-                st.session_state[dialog_key] = selected_action == "Enable"
-                card_key = f"tool_{tool['id']}_card_status"
-                st.session_state[card_key] = selected_action == "Enable"
-
-                st.session_state["dialog_open"] = False
-                st.session_state["current_tool"] = None
-                st.session_state["dialog_type"] = None
-
-                st.success(f"Tool '{tool['display_name']}' configured and enabled.")
-                st.rerun()
-            else:
-                st.error("Please provide both API Key and CSE ID.")
-
-    # --------------------- Dialog C ---------------------
-    def custom_dialog_c(self, tool):
-        st.write(f"{tool['logo']} {tool['display_name']}")
-        dialog_key = f"tool_{tool['id']}_dialog_status"
-
-        if dialog_key not in st.session_state:
-            st.session_state[dialog_key] = tool["status"] == "enable"
-
-        input_api_key = st.text_input("Enter your API Key:", key=f"api_c_{tool['id']}")
-
-        if st.button("Save", key=f"save_{tool['id']}"):
-            if input_api_key:
-                st.session_state[dialog_key] = True
-                card_key = f"tool_{tool['id']}_card_status"
-                st.session_state[card_key] = True
-
-                st.session_state["dialog_open"] = False
-                st.session_state["current_tool"] = None
-                st.session_state["dialog_type"] = None
-
-                st.success(f"Tool '{tool['display_name']}' configured and enabled.")
-                st.rerun()
-            else:
-                st.error("Please provide API Key.")
+            st.success("Tool configuration updated successfully.")
+            st.rerun()
 
     def render_tool_card(self, tool):
         tool_id = tool["id"]
@@ -145,8 +145,14 @@ class ToolPage:
                         st.session_state["dialog_type"] = "A"
                     elif tool["name"] == "google_search":
                         st.session_state["dialog_type"] = "B"
-                    elif tool["name"] in ["google_scholar", "google_trends"]:
+                    elif tool["name"] in ["google_scholar", "google_trends", "openweather"]:
                         st.session_state["dialog_type"] = "C"
+                    elif tool["name"] == "asknews":
+                        st.session_state["dialog_type"] = "D"
+                    elif tool["name"] == "reddit":
+                        st.session_state["dialog_type"] = "E"
+                    elif tool["name"] == "searx":
+                        st.session_state["dialog_type"] = "F"
                     else:
                         st.session_state["dialog_type"] = "Z"
 
@@ -155,6 +161,7 @@ class ToolPage:
 
     def display(self):
         st.title("🛠️ Tools")
+        st.caption("Configure the tools available for your AI assistant.", help="Tools allow your AI assistant to access external information and services to enhance its capabilities.")
         resp_json = self.make_request.get(endpoint=self.api_conf.tool_endpoint)
         tools_sorted = sorted(resp_json, key=lambda x: x["display_name"].lower())
         cols = st.columns(4)
