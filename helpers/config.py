@@ -83,62 +83,6 @@ class AWSBedrockModelInfo:
     tags: List[str] = field(default_factory=list)
     logo: str = "🧠"
 
-class ToolDescription:
-    """Centralized tool metadata for display & documentation."""
-
-    DATA = {
-        "Arxiv": {
-            "description": "Search academic papers and preprints from arXiv.",
-            "tags": ["Research", "Academic"],
-            "logo": "📚",
-        },
-        "AskNews": {
-            "description": "Fetch the latest breaking news from various sources.",
-            "tags": ["News", "Trending"],
-            "logo": "🗞️",
-        },
-        "DuckDuckGo": {
-            "description": "Privacy-focused general-purpose web search.",
-            "tags": ["Search", "Web"],
-            "logo": "🦆",
-        },
-        "GoogleSearch": {
-            "description": "Comprehensive Google-powered web search.",
-            "tags": ["Search", "Web"],
-            "logo": "🌐",
-        },
-        "GoogleScholar": {
-            "description": "Search scholarly publications and citations.",
-            "tags": ["Research", "Academic"],
-            "logo": "🎓",
-        },
-        "GoogleTrends": {
-            "description": "Analyze trending search queries and interest over time.",
-            "tags": ["Analytics", "Search"],
-            "logo": "📈",
-        },
-        "RedditSearch": {
-            "description": "Find community discussions and opinions from Reddit.",
-            "tags": ["Community", "Social"],
-            "logo": "💬",
-        },
-        "SearxSearch": {
-            "description": "Meta search engine combining results from multiple sources.",
-            "tags": ["Search", "Meta"],
-            "logo": "🕸️",
-        },
-        "Weather": {
-            "description": "Check current and forecasted weather conditions.",
-            "tags": ["Utility", "Environment"],
-            "logo": "⛅",
-        },
-        "Wikipedia": {
-            "description": "Retrieve general knowledge, summaries, and definitions.",
-            "tags": ["Knowledge", "Reference"],
-            "logo": "📖",
-        },
-    }
-
 class AWSBedrockModelDescription:
     """Central registry of AWS Bedrock foundation models."""
 

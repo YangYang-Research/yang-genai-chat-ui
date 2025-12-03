@@ -3,12 +3,12 @@ import streamlit as st
 from helpers.loog import logger
 from helpers.utils import Utils
 from helpers.http import MakeRequest
-from helpers.config import AppConfig, AWSConfig, ChatConfig
+from helpers.config import AppConfig, AWSConfig, APIConfig
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 
 app_conf = AppConfig()
 aws_conf = AWSConfig()
-chat_conf = ChatConfig()
+api_conf = APIConfig()
 make_request = MakeRequest()
 utils = Utils()
 
@@ -42,7 +42,7 @@ def save_feedback(message_index: int):
     try:
         if message_content:
             make_request.post(
-                endpoint=chat_conf.chat_feedback_endpoint,
+                endpoint=api_conf.chat_feedback_endpoint,
                 data={
                     "message_index": message_index,
                     "message_content": message_content,
@@ -60,17 +60,18 @@ def render_model_selector():
     col1, col2, col3, col4, col5, col6 = st.columns(6)
 
     with col1:
-        options = chat_conf.chat_model_support
+        options = api_conf.chat_model_support
 
         if st.session_state.selected_model not in options:
             st.session_state.selected_model = options[0] if options else ""
 
         selected_model = st.selectbox(
-            "Models",
+            "Models:",
             options,
             index=options.index(st.session_state.selected_model),
             placeholder="Select model",
             key="model_selector",
+            help="Select the chat model to use.",
         )
 
         # Update session_state when user changes selection
@@ -85,7 +86,7 @@ class AgentPage:
         pass
     
     def display(self):
-        st.markdown("## 💬 Cell Agent")
+        st.markdown("### 💬 Yang Agent")
         
         init_session_state(default_model="claude")
 
@@ -130,6 +131,7 @@ class AgentPage:
             if files:
                 attachments = utils.process_multiple_files(files)
             
+            msgs.add_user_message(prompt)
             st.chat_message("user").write(prompt)
 
             if files:
