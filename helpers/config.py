@@ -68,14 +68,6 @@ class LogConfig(object):
     log_max_backups: str = os.getenv("LOG_MAX_BACKUPS", "5")    # 5 backup files
 
 @dataclass
-class ToolInfo:
-    """Agent tool information."""
-    name: str
-    description: str
-    tags: List[str] = field(default_factory=list)
-    logo: str = "🛠️"
-
-@dataclass
 class AWSBedrockModelInfo:
     "AWS Bedrock model information."
     name: str
