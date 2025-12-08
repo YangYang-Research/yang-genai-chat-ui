@@ -18,12 +18,12 @@ class HomePage:
         )
 
     def display(self):
-        st.title("🚀 Yang - GenAI Chat UI")
+        st.title("🚀 Yang - GenAI")
 
         st.markdown("### 🧠 AWS Bedrock Model")
 
         cols = st.columns(4)
-        for i, model in enumerate(self.models):
+        for i, model in enumerate[AWSBedrockModelInfo](self.models):
             col = cols[i % 4]
             with col:
                 self.render_model_card(model)

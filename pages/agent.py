@@ -105,7 +105,7 @@ class AgentPage:
                 st.chat_message("user").write(msg.content)
             else:
                 # Feedback for assistant messages only
-                with st.chat_message("assistant"):
+                with st.chat_message("assistant", avatar=app_conf.agent_logo_path):
                     st.write(msg.content)
                     existing_feedback = st.session_state.feedback.get(idx)
                     st.session_state[f"feedback_{idx}"] = existing_feedback
@@ -143,7 +143,7 @@ class AgentPage:
                         st.write(f"Attachment: {attachment.name} - {attachment.size_kb} KB")
 
             # Stream AI response
-            with st.chat_message("assistant"):
+            with st.chat_message("assistant", avatar=app_conf.agent_logo_path):
                 placeholder = st.empty()
                 full_response = ""
                 for chunk in make_request.stream_chat_completions(chat_model, msgs, prompt, attachments):

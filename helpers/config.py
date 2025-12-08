@@ -11,9 +11,11 @@ load_dotenv()
 class AppConfig(object):
     """Base configuration class."""
 
-    logo_path: Path = Path(__file__).parent.parent / "assets" / "logo-2.png"
+    logo_path: Path = Path(__file__).parent.parent / "assets" / "logo.png"
     icon_path: Path = Path(__file__).parent.parent / "assets" / "logo.png"
+    agent_logo_path: Path = Path(__file__).parent.parent / "assets" / "agent-logo.png"
     favicon_path: Path = Path(__file__).parent.parent / "assets" / "favicon.ico"
+    llm_logo_folder_path: Path = Path(__file__).parent.parent / "assets" / "llms"
     
     app_name: str = str(os.getenv("APP_NAME", ""))
     page_title: str = str(os.getenv("PAGE_TITLE", ""))
