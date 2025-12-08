@@ -10,23 +10,23 @@ class ToolPage:
         self.make_request = MakeRequest()
 
         @st.dialog("Tool Configuration")
-        def universal_dialog():
+        def tool_configuration_dialog():
             tool = st.session_state.get("current_tool", None)
-            dialog_type = st.session_state.get("dialog_type", None)
+            dialog_type = st.session_state.get("tool_dialog_type", None)
 
             if tool is None or dialog_type is None:
                 st.write("No tool selected")
                 return
 
-            self.custom_dialog(tool, dialog_type)
+            self.flexible_tool_dialog(tool, dialog_type)
 
-        self.universal_dialog = universal_dialog
+        self.tool_configuration_dialog = tool_configuration_dialog
 
-    def custom_dialog(self, tool, dialog_type):
+    def flexible_tool_dialog(self, tool, dialog_type):
         st.write(f"{tool['logo']} {tool['display_name']}")
         dialog_key = f"tool_{tool['id']}_dialog_status"
 
-        # persist trạng thái radio
+        # persist the radio state
         if dialog_key not in st.session_state:
             st.session_state[dialog_key] = tool["status"] == "enable"
 
@@ -111,9 +111,9 @@ class ToolPage:
                 st.error("Failed to update tool configuration.")
                 return
             
-            st.session_state["dialog_open"] = False
+            st.session_state["tool_dialog_open"] = False
             st.session_state["current_tool"] = None
-            st.session_state["dialog_type"] = None
+            st.session_state["tool_dialog_type"] = None
 
             st.success("Tool configuration updated successfully.")
             st.rerun()
@@ -138,23 +138,23 @@ class ToolPage:
             with card_cols[1]:
                 icon = "🟢" if st.session_state[tool_enable_status_key] else "🔴"
                 if st.button(icon, key=f"{tool_enable_status_key}_widget"):
-                    st.session_state["dialog_open"] = True
+                    st.session_state["tool_dialog_open"] = True
                     st.session_state["current_tool"] = tool
 
                     if tool["name"] in ["arxiv", "duckduckgo", "wikipedia"]:
-                        st.session_state["dialog_type"] = "A"
+                        st.session_state["tool_dialog_type"] = "A"
                     elif tool["name"] == "google_search":
-                        st.session_state["dialog_type"] = "B"
+                        st.session_state["tool_dialog_type"] = "B"
                     elif tool["name"] in ["google_scholar", "google_trends", "openweather"]:
-                        st.session_state["dialog_type"] = "C"
+                        st.session_state["tool_dialog_type"] = "C"
                     elif tool["name"] == "asknews":
-                        st.session_state["dialog_type"] = "D"
+                        st.session_state["tool_dialog_type"] = "D"
                     elif tool["name"] == "reddit":
-                        st.session_state["dialog_type"] = "E"
+                        st.session_state["tool_dialog_type"] = "E"
                     elif tool["name"] == "searx":
-                        st.session_state["dialog_type"] = "F"
+                        st.session_state["tool_dialog_type"] = "F"
                     else:
-                        st.session_state["dialog_type"] = "Z"
+                        st.session_state["tool_dialog_type"] = "Z"
 
             st.markdown(f"**Description:** {tool['description']}")
             st.markdown(f"**Tags:** {tags_html}", unsafe_allow_html=True)
@@ -170,8 +170,8 @@ class ToolPage:
             with cols[i % 4]:
                 self.render_tool_card(tool)
                 
-        if st.session_state.get("dialog_open", False):
-            self.universal_dialog()
+        if st.session_state.get("tool_dialog_open", False):
+            self.tool_configuration_dialog()
 
     def run(self):
         self.display()
