@@ -9,6 +9,16 @@ class LLMPage:
         self.app_conf = AppConfig()
         self.api_conf = APIConfig()
         self.make_request = MakeRequest()
+        
+    def create_llm_logo_path(self, logo: str):
+        # logo is like "anthropic.png"
+        base_name = logo.rsplit('.', 1)[0]  # "anthropic"
+        ext = logo.rsplit('.', 1)[-1]       # "png"
+        if st.context.theme.type == "light":
+            logo_filename = f"{base_name}-light.{ext}"
+        else:
+            logo_filename = f"{base_name}-dark.{ext}"
+        return self.app_conf.llm_logo_folder_path / logo_filename
 
     def render_llm_card(self, llm: dict):
         llm_id = llm["id"]
@@ -20,13 +30,14 @@ class LLMPage:
 
         with st.container(border=True, key=card_key):
             card_cols = st.columns([8, 2])
-            base64_logo = base64.b64encode(open(self.app_conf.llm_logo_folder_path / f"{llm['logo']}", "rb").read()).decode("utf-8")
+            llm_logo_path = self.create_llm_logo_path(llm['logo'])
+            base64_logo = base64.b64encode(open(llm_logo_path, "rb").read()).decode("utf-8")
 
             with card_cols[0]:
                 st.markdown(
                     f"""
                     <div style="text-align: left;">
-                        <h3><img src="data:image/png;base64,{base64_logo}" alt="Logo" style="width: 30px;"/> {llm['display_name']}</h3>
+                        <h3><img src="data:image/png;base64,{base64_logo}" alt="{llm['display_name']}" style="width: 30px;"/> {llm['display_name']}</h3>
                     </div>
                     """,
                     unsafe_allow_html=True,
