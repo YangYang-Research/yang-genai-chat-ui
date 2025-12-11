@@ -22,7 +22,7 @@ class ToolPage:
 
         self.tool_configuration_dialog = tool_configuration_dialog
 
-    def flexible_tool_dialog(self, tool, dialog_type):
+    def flexible_tool_dialog(self, tool: dict, dialog_type: str):
         st.write(f"{tool['logo']} {tool['display_name']}")
         dialog_key = f"tool_{tool['id']}_dialog_status"
 
@@ -74,16 +74,16 @@ class ToolPage:
                 if is_enable and not input_api_key:
                     st.error("API Key is required.")
                     return
-            elif is_enable and dialog_type == "D":
-                if not input_client_id or not input_client_secret:
+            elif dialog_type == "D":
+                if is_enable and not input_client_id or not input_client_secret:
                     st.error("Client ID and Client Secret are required.")
                     return
-            elif is_enable and dialog_type == "E":
-                if not input_client_id or not input_client_secret or not input_user_agent:
+            elif dialog_type == "E":
+                if is_enable and not input_client_id or not input_client_secret or not input_user_agent:
                     st.error("Reddit Client ID, Client Secret, and User Agent are required.")
                     return
-            elif is_enable and dialog_type == "F":
-                if not input_host:
+            elif dialog_type == "F":
+                if is_enable and not input_host:
                     st.error("Searx Instance URL is required.")
                     return
             else:
@@ -118,7 +118,7 @@ class ToolPage:
             st.success("Tool configuration updated successfully.")
             st.rerun()
 
-    def render_tool_card(self, tool):
+    def render_tool_card(self, tool: dict):
         tool_id = tool["id"]
         card_key = f"tool_card_{tool_id}"
         tool_enable_status_key = f"tool_{tool_id}_enable_status"
