@@ -38,8 +38,8 @@ class App:
 
         # Define pages
         home_page = st.Page("pages/home.py", title="Home", icon="🚀", url_path="/")
-        agent_page = st.Page("pages/agent.py", title="Yang Agent", icon="💬", url_path="/yang-agent")
 
+        agent_page = st.Page("pages/agent.py", title="Agents", icon="⭐️", url_path="/agents")
         llm_page = st.Page("pages/llm.py", title="LLMs", icon="🧠", url_path="/llms")
         tool_page = st.Page("pages/tool.py", title="Tools", icon="🛠️", url_path="/tools")
 
@@ -57,8 +57,8 @@ class App:
                 st.session_state["chat_session_id"] = uuid.uuid1()
 
             pg = st.navigation({
-                "Yang": [home_page, agent_page],
-                "Manage": [llm_page, tool_page],
+                "Yang": [home_page],
+                "Manage": [llm_page, agent_page, tool_page],
                 "Account": [user_page, logout_page],
                 "Pages": [blank_page],
             }, position="top")

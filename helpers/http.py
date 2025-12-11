@@ -19,84 +19,74 @@ class MakeRequest(object):
 
         messages = []
 
-        if chat_model == "claude":
-            messages = [
-                    {"role": "user" if m.type == "human" else "assistant", "content": m.content}
-                    for m in history.messages
-                ]
-        
-            if attachments:
-                for attachment in attachments:
-                    if attachment.status.value == "completed":
-                        if attachment.is_image and attachment.base64:
-                            messages = messages + [
-                                {
-                                    "role": "user", 
-                                    "content": [
-                                        {
-                                            "type": "text", 
-                                            "text": prompt
+        messages = [
+                {"role": "user" if m.type == "human" else "assistant", "content": m.content}
+                for m in history.messages
+            ]
+    
+        if attachments:
+            for attachment in attachments:
+                if attachment.status.value == "completed":
+                    if attachment.is_image and attachment.base64:
+                        messages = messages + [
+                            {
+                                "role": "user", 
+                                "content": [
+                                    {
+                                        "type": "text", 
+                                        "text": prompt
+                                    },
+                                    {
+                                        "type": "image",
+                                        "source": {
+                                            "type": "base64",
+                                            "media_type": attachment.type,
+                                            "data": attachment.base64,
                                         },
-                                        {
-                                            "type": "image",
-                                            "source": {
-                                                "type": "base64",
-                                                "media_type": attachment.type,
-                                                "data": attachment.base64,
-                                            },
-                                        },
-                                    ]
-                                }
-                            ]
-                        elif attachment.is_document and attachment.base64:
-                            messages = messages + [
-                                {
-                                    "role": "user", 
-                                    "content": [
-                                        {
-                                            "type": "text", 
-                                            "text": prompt
-                                        },
-                                        {
-                                            "document": {
-                                                # Available formats: html, md, pdf, doc/docx, xls/xlsx, csv, and txt
-                                                "format": Utils.get_file_format(attachment.type),
-                                                "name": Utils.format_filename(attachment.name),
-                                                "source": {"bytes": attachment.base64}, #(convert bytes → base64 string) for sending over HTTP
-                                            }
-                                        },
-                                    ]
-                                }
-                            ]
-                        elif attachment.is_text and attachment.content:
-                            messages = messages + [
-                                {
-                                    "role": "user", 
-                                    "content": [
-                                        {
-                                            "type": "text", 
-                                            "text": prompt
-                                        },
-                                        {
-                                            "type": "text", 
-                                            "text": attachment.content
-                                        },
-                                    ]
-                                }
-                            ]
-                        else:
-                            pass
-            else:
-                messages = messages + [{"role": "user", "content": prompt}]
-        elif chat_model == "llama":
-            st.toast(f"Model : {chat_model} currently not supported", icon="⚠️")
-            st.stop()
-        elif chat_model == "gpt-oss":
-            st.toast(f"Model : {chat_model} currently not supported", icon="⚠️")
-            st.stop()
+                                    },
+                                ]
+                            }
+                        ]
+                    elif attachment.is_document and attachment.base64:
+                        messages = messages + [
+                            {
+                                "role": "user", 
+                                "content": [
+                                    {
+                                        "type": "text", 
+                                        "text": prompt
+                                    },
+                                    {
+                                        "document": {
+                                            # Available formats: html, md, pdf, doc/docx, xls/xlsx, csv, and txt
+                                            "format": Utils.get_file_format(attachment.type),
+                                            "name": Utils.format_filename(attachment.name),
+                                            "source": {"bytes": attachment.base64}, #(convert bytes → base64 string) for sending over HTTP
+                                        }
+                                    },
+                                ]
+                            }
+                        ]
+                    elif attachment.is_text and attachment.content:
+                        messages = messages + [
+                            {
+                                "role": "user", 
+                                "content": [
+                                    {
+                                        "type": "text", 
+                                        "text": prompt
+                                    },
+                                    {
+                                        "type": "text", 
+                                        "text": attachment.content
+                                    },
+                                ]
+                            }
+                        ]
+                    else:
+                        pass
         else:
-            st.toast(f"Model : {chat_model} currently not supported", icon="⚠️")
-            st.stop()
+            messages = messages + [{"role": "user", "content": prompt}]
 
         if isinstance(messages, tuple):
             messages = list(messages)
