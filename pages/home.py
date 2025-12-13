@@ -19,7 +19,13 @@ def init_session_state():
     if "selected_model" not in st.session_state:
         st.session_state.selected_model = None
     if "agent_name" not in st.session_state:
-        st.session_state.agent_name = "yang-agent"
+        st.session_state.agent_name = None
+    if "agent_display_name" not in st.session_state:
+        st.session_state.agent_display_name = None
+    if "agent_logo" not in st.session_state:
+        st.session_state.agent_logo = None
+    if "agent_logo_path" not in st.session_state:
+        st.session_state.agent_logo_path = None
 
 def save_feedback(message_index: int):
     """Save user feedback and send to backend."""
@@ -95,13 +101,35 @@ def render_model_selector():
 
     return st.session_state.selected_model
 
+def create_agent_logo_path(logo: str):
+    # logo is like "anthropic.png"
+    base_name = logo.rsplit('.', 1)[0]  # "anthropic"
+    ext = logo.rsplit('.', 1)[-1]       # "png"
+    if st.context.theme.type == "light":
+        logo_filename = f"{base_name}-light.{ext}"
+    else:
+        logo_filename = f"{base_name}-dark.{ext}"
+    return app_conf.agent_logo_folder_path / logo_filename
+
 class HomePage:
     def __init__(self):
         pass
     
     def display(self):
-        st.markdown("### 🚀 Yang Agent")
-        
+        agent_resp_json = make_request.get(endpoint=api_conf.agent_endpoint + "default")
+        agent_name = agent_resp_json.get("name", None)
+        if agent_name is not None:
+            st.session_state.agent_name = agent_name
+            st.session_state.agent_display_name = agent_resp_json.get("display_name", None)
+            st.session_state.agent_logo = agent_resp_json.get("logo", None)
+            st.session_state.agent_logo_path = create_agent_logo_path(st.session_state.agent_logo)
+        else:
+            st.error("No default agent found.")
+            st.stop()
+
+        base64_logo = base64.b64encode(open(st.session_state.agent_logo_path, "rb").read()).decode("utf-8")
+        st.markdown(f"### <img src='data:image/png;base64,{base64_logo}' alt='{st.session_state.agent_display_name}' style='width: 40px;'/> {st.session_state.agent_display_name}", unsafe_allow_html=True)
+
         init_session_state()
 
         chat_model = render_model_selector()
@@ -119,7 +147,7 @@ class HomePage:
                 st.chat_message("user").write(msg.content)
             else:
                 # Feedback for assistant messages only
-                with st.chat_message("assistant", avatar=app_conf.agent_logo_path):
+                with st.chat_message("assistant", avatar=st.session_state.get("agent_logo_path", app_conf.agent_logo_path)):
                     st.write(msg.content)
                     existing_feedback = st.session_state.feedback.get(idx)
                     st.session_state[f"feedback_{idx}"] = existing_feedback
@@ -157,7 +185,7 @@ class HomePage:
                         st.write(f"Attachment: {attachment.name} - {attachment.size_kb} KB")
 
             # Stream AI response
-            with st.chat_message("assistant", avatar=app_conf.agent_logo_path):
+            with st.chat_message("assistant", avatar=st.session_state.get("agent_logo_path", app_conf.agent_logo_path)):
                 placeholder = st.empty()
                 full_response = ""
                 for chunk in make_request.stream_chat_completions(agent_name=st.session_state.agent_name, chat_model=chat_model, history=msgs, prompt=prompt, attachments=attachments):

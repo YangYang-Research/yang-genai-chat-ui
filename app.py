@@ -33,7 +33,7 @@ class App:
         self._init_session_state()
 
         # Define pages
-        home_page = st.Page("pages/home.py", title="Home", icon="🚀", url_path="/")
+        home_page = st.Page("pages/home.py", title="AI Assistant", icon="🚀", url_path="/")
 
         agent_page = st.Page("pages/agent.py", title="Agents", icon="⭐️", url_path="/agents")
         llm_page = st.Page("pages/llm.py", title="LLMs", icon="🧠", url_path="/llms")
