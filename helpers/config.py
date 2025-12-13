@@ -16,7 +16,7 @@ class AppConfig(object):
     agent_logo_path: Path = Path(__file__).parent.parent / "assets" / "agent-logo.png"
     favicon_path: Path = Path(__file__).parent.parent / "assets" / "favicon.ico"
     llm_logo_folder_path: Path = Path(__file__).parent.parent / "assets" / "images" / "llms"
-    
+    agent_logo_folder_path: Path = Path(__file__).parent.parent / "assets" / "images" / "agents"
     app_name: str = str(os.getenv("APP_NAME", ""))
     page_title: str = str(os.getenv("PAGE_TITLE", ""))
     
