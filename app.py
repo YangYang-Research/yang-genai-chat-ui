@@ -33,7 +33,7 @@ class App:
         self._init_session_state()
 
         # Define pages
-        home_page = st.Page("pages/home.py", title="AI Assistant", icon="🚀", url_path="/")
+        assistant_page = st.Page("pages/assistant.py", title="Assistant", icon="💬", url_path="/")
 
         agent_page = st.Page("pages/agent.py", title="Agents", icon="⭐️", url_path="/agents")
         llm_page = st.Page("pages/llm.py", title="LLMs", icon="🧠", url_path="/llms")
@@ -53,7 +53,7 @@ class App:
                 st.session_state["chat_session_id"] = uuid.uuid1()
 
             pg = st.navigation({
-                "Yang": [home_page],
+                "AI": [assistant_page],
                 "Manage": [llm_page, agent_page, tool_page],
                 "Account": [user_page, logout_page],
                 "Pages": [blank_page],

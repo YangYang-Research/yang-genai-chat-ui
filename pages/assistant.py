@@ -111,7 +111,7 @@ def create_agent_logo_path(logo: str):
         logo_filename = f"{base_name}-dark.{ext}"
     return app_conf.agent_logo_folder_path / logo_filename
 
-class HomePage:
+class AssistantPage:
     def __init__(self):
         pass
     
@@ -210,7 +210,7 @@ class HomePage:
 
 def main():
     try:
-        page = HomePage()
+        page = AssistantPage()
         page.run()
     except Exception as e:
         logger.error(f"An error occurred: {e}")
