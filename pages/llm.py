@@ -10,10 +10,9 @@ class LLMPage:
         self.api_conf = APIConfig()
         self.make_request = MakeRequest()
         
-        @st.dialog("LLM Configuration")
+        @st.dialog("LLM Configuration", width="medium")
         def llm_configuration_dialog():
             llm = st.session_state.get("current_model", None)
-            
             if llm is None:
                 st.write("No LLM selected")
                 return
@@ -50,8 +49,8 @@ class LLMPage:
             st.session_state[dialog_key] = llm["status"] == "enable"
 
         selected_index = 0 if st.session_state[dialog_key] else 1
-        selected_action = st.radio(
-            "Select action:",
+        selected_status = st.radio(
+            "Select status:",
             options=["Enable", "Disable"],
             index=selected_index,
             key=f"radio_{llm['id']}_dialog",
@@ -68,10 +67,10 @@ class LLMPage:
         input_model_temperature = st.number_input("Enter your Model Temperature:", key=f"model_temperature_{llm['id']}", value=llm.get('temperature', 0.7), min_value=0.0, max_value=1.0, step=0.1, help="The temperature of the LLM on AWS Bedrock.")
         input_guardrail_id = st.text_input("Enter your Guardrail ID:", key=f"guardrail_id_{llm['id']}", value=llm.get('guardrail_id', ''), help="The ID of the Guardrail for the LLM on AWS Bedrock.")
         input_guardrail_version = st.text_input("Enter your Guardrail Version:", key=f"guardrail_version_{llm['id']}", value=llm.get('guardrail_version', ''), help="The version of the Guardrail for the LLM on AWS Bedrock.")
-        input_system_prompt = st.text_area("Enter your System Prompt:", key=f"system_prompt_{llm['id']}", value=llm.get('system_prompt', ''), help="The system prompt for the LLM on AWS Bedrock.")
+        input_system_prompt = st.text_area("Enter your System Prompt:", key=f"system_prompt_{llm['id']}", value=llm.get('system_prompt', ''), height=300, help="The system prompt for the LLM on AWS Bedrock.")
         
         if st.button("Save", key=f"save_{llm['id']}"):
-            is_enable = selected_action == "Enable"
+            is_enable = selected_status == "Enable"
             st.session_state[dialog_key] = is_enable
             st.session_state[f"llm_{llm['id']}_enable_status"] = is_enable
 
@@ -104,7 +103,6 @@ class LLMPage:
 
             st.session_state["llm_dialog_open"] = False
             st.session_state["current_model"] = None
-            st.session_state["llm_dialog_type"] = None
 
             st.success("LLM configuration updated successfully.")
             st.rerun()

@@ -31,8 +31,8 @@ class ToolPage:
             st.session_state[dialog_key] = tool["status"] == "enable"
 
         selected_index = 0 if st.session_state[dialog_key] else 1
-        selected_action = st.radio(
-            "Select action:",
+        selected_status = st.radio(
+            "Select status:",
             options=["Enable", "Disable"],
             index=selected_index,
             key=f"radio_{tool['id']}_dialog",
@@ -60,7 +60,7 @@ class ToolPage:
 
         # Save button
         if st.button("Save", key=f"save_{tool['id']}"):
-            is_enable = selected_action == "Enable"
+            is_enable = selected_status == "Enable"
             st.session_state[dialog_key] = is_enable
             st.session_state[f"tool_{tool['id']}_enable_status"] = is_enable
 

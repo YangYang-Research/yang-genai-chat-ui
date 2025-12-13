@@ -59,8 +59,8 @@ def save_feedback(message_index: int):
 def render_model_selector():
     """Render model selector with session persistence."""
 
-    resp_json = make_request.get(endpoint=api_conf.llm_endpoint + "enabled")
-    llms_sorted = sorted(resp_json, key=lambda x: x["display_name"].lower())
+    llms_resp_json = make_request.get(endpoint=api_conf.llm_endpoint + "enabled")
+    llms_sorted = sorted(llms_resp_json, key=lambda x: x["display_name"].lower())
     # Create options as (display_name, name) pairs for display/value separation
     model_options = [(llm["display_name"], llm["name"]) for llm in llms_sorted]
     name_to_display = {llm["name"]: llm["display_name"] for llm in llms_sorted}
