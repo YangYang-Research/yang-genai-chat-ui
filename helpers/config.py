@@ -15,7 +15,7 @@ class AppConfig(object):
     icon_path: Path = Path(__file__).parent.parent / "assets" / "logo.png"
     agent_logo_path: Path = Path(__file__).parent.parent / "assets" / "agent-logo.png"
     favicon_path: Path = Path(__file__).parent.parent / "assets" / "favicon.ico"
-    llm_logo_folder_path: Path = Path(__file__).parent.parent / "assets" / "llms"
+    llm_logo_folder_path: Path = Path(__file__).parent.parent / "assets" / "images" / "llms"
     
     app_name: str = str(os.getenv("APP_NAME", ""))
     page_title: str = str(os.getenv("PAGE_TITLE", ""))
@@ -68,42 +68,3 @@ class LogConfig(object):
 
     log_max_size: str = os.getenv("LOG_MAX_SIZE", "10485760")  # 10 MB
     log_max_backups: str = os.getenv("LOG_MAX_BACKUPS", "5")    # 5 backup files
-
-@dataclass
-class AWSBedrockModelInfo:
-    "AWS Bedrock model information."
-    name: str
-    description: str
-    tags: List[str] = field(default_factory=list)
-    logo: str = "🧠"
-
-class AWSBedrockModelDescription:
-    """Central registry of AWS Bedrock foundation models."""
-
-    DATA = {
-        "Claude": {
-            "description": (
-                "Anthropic Claude is a family of advanced reasoning language models "
-                "optimized for safety, reliability, and long-context reasoning. "
-                "Ideal for general-purpose chat, document analysis, and secure LLM applications."
-            ),
-            "tags": ["Anthropic", "Reasoning", "Conversational"],
-            "logo": "👾",
-        },
-        "GPT-OSS": {
-            "description": (
-                "GPT OSS models are open-source large language models hosted on AWS Bedrock. "
-                "They provide customizable performance for text generation, code, and creative tasks."
-            ),
-            "tags": ["Open Source", "Text Generation", "Flexible"],
-            "logo": "🧩",
-        },
-        "Llama": {
-            "description": (
-                "Meta’s Llama models deliver high performance for chat, reasoning, and multi-language use cases. "
-                "They are efficient and fine-tuned for enterprise-grade workloads on Bedrock."
-            ),
-            "tags": ["Meta", "Efficient", "Multilingual"],
-            "logo": "🦙",
-        },
-    }
