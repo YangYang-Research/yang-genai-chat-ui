@@ -12,12 +12,14 @@ api_conf = APIConfig()
 make_request = MakeRequest()
 utils = Utils()
 
-def init_session_state(default_model: str = "claude"):
+def init_session_state():
     """Initialize session state."""
     if "feedback" not in st.session_state:
         st.session_state.feedback = {}  # {message_index: "up"/"down"}
     if "selected_model" not in st.session_state:
-        st.session_state.selected_model = default_model
+        st.session_state.selected_model = None
+    if "agent_name" not in st.session_state:
+        st.session_state.agent_name = "yang-agent"
 
 def save_feedback(message_index: int):
     """Save user feedback and send to backend."""
@@ -57,30 +59,39 @@ def save_feedback(message_index: int):
 def render_model_selector():
     """Render model selector with session persistence."""
 
-    resp_json = make_request.get(endpoint=api_conf.llm_endpoint)
+    resp_json = make_request.get(endpoint=api_conf.llm_endpoint + "enabled")
     llms_sorted = sorted(resp_json, key=lambda x: x["display_name"].lower())
-    model_options = [llm["name"] for llm in llms_sorted]
-    
+    # Create options as (display_name, name) pairs for display/value separation
+    model_options = [(llm["display_name"], llm["name"]) for llm in llms_sorted]
+    name_to_display = {llm["name"]: llm["display_name"] for llm in llms_sorted}
+    names = [llm["name"] for llm in llms_sorted]
+
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        if st.session_state.selected_model not in model_options:
-            st.session_state.selected_model = model_options[0] if model_options else ""
+        if st.session_state.selected_model not in names:
+            st.session_state.selected_model = names[0] if names else ""
 
-        selected_model = st.selectbox(
+        # Set up index for selectbox
+        current_idx = names.index(st.session_state.selected_model) if st.session_state.selected_model in names else 0
+
+        # Display display_name, but internally value is name
+        selected_display = st.selectbox(
             "LLMs:",
-            model_options,
-            index=model_options.index(st.session_state.selected_model),
+            options=model_options,
+            index=current_idx,
+            format_func=lambda pair: pair[0],
             placeholder="Select LLM",
             key="model_selector",
             help="Select the LLM to use.",
-            width="stretch"
         )
+
+        selected_model = selected_display[1]  # Take name value
 
         # Update session_state when user changes selection
         if selected_model != st.session_state.selected_model:
             st.session_state.selected_model = selected_model
-            st.toast(f"LLM selected: {selected_model}", icon="✅")
+            st.toast(f"LLM selected: {name_to_display[selected_model]}", icon="✅")
 
     return st.session_state.selected_model
 
@@ -91,14 +102,14 @@ class HomePage:
     def display(self):
         st.markdown("### 🚀 Yang Agent")
         
-        init_session_state(default_model="claude")
+        init_session_state()
 
         chat_model = render_model_selector()
 
         msgs = StreamlitChatMessageHistory(key="chat_history")
 
-        if not msgs.messages:
-            msgs.add_ai_message("👋 Hello! How can I assist you today?")
+        # if not msgs.messages:
+        #     msgs.add_ai_message("👋 Hello! How can I assist you today?")
 
         # Display chat history
         for idx, msg in enumerate(msgs.messages):
@@ -149,7 +160,7 @@ class HomePage:
             with st.chat_message("assistant", avatar=app_conf.agent_logo_path):
                 placeholder = st.empty()
                 full_response = ""
-                for chunk in make_request.stream_chat_completions(chat_model, msgs, prompt, attachments):
+                for chunk in make_request.stream_chat_completions(agent_name=st.session_state.agent_name, chat_model=chat_model, history=msgs, prompt=prompt, attachments=attachments):
                     full_response += chunk
                     placeholder.markdown(full_response + "▌")
                 placeholder.markdown(full_response)

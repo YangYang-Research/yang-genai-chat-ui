@@ -12,7 +12,7 @@ class MakeRequest(object):
         self.api_conf = APIConfig()
         self.aws_secret_manager = AWSSecretManager()
 
-    def stream_chat_completions(self, chat_model: str, history: dict, prompt: str, attachments: list):
+    def stream_chat_completions(self, agent_name: str, chat_model: str, history: dict, prompt: str, attachments: list):
         """
         Stream tokens from backend API (StreamingResponse).
         """
@@ -95,6 +95,7 @@ class MakeRequest(object):
 
         payload = {
             "chat_session_id": str(chat_session),
+            "agent_name": agent_name,
             "model_name": chat_model,
             "messages": messages,
         }
@@ -162,7 +163,6 @@ class MakeRequest(object):
         """
         Send a PUT request to the specified endpoint.
         """
-        print(endpoint, data)  # DEBUG
         headers = {
             "Content-Type": "application/json",
             "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
