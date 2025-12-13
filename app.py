@@ -1,7 +1,7 @@
 import uuid
 import streamlit as st
 from helpers.config import AppConfig
-from helpers.auth import get_logout, get_user_info, check_user_login
+from helpers.auth import get_user_info, check_user_login
 from helpers.loog import logger
 
 # ------------- Application Class -------------
@@ -26,10 +26,6 @@ class App:
             st.session_state["chat_session_id"] = None
         if "userinfo" not in st.session_state:
             st.session_state["userinfo"] = None
-
-    def logout_page(self):
-        get_logout()
-        st.rerun()
 
     def run(self):
         self._set_page_config()
