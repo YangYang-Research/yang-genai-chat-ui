@@ -60,6 +60,7 @@ class APIConfig(object):
     llm_endpoint: str = "llms/"
     user_endpoint: str = "users/"
     tool_endpoint: str = "tools/"
+    tag_endpoint:str = "tags/"
     login_endpoint: str = "authentication/login"
 
 @dataclass
