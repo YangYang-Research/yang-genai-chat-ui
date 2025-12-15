@@ -62,16 +62,14 @@ def save_feedback(message_index: int):
     except Exception as e:
         logger.error(f"[Feedback] Failed to send feedback: {e}")
 
-def render_model_selector():
+def render_model_selector(agent_llms: list):
     """Render model selector with session persistence."""
-
     llms_resp_json = make_request.get(endpoint=api_conf.llm_endpoint + "enabled")
     llms_sorted = sorted(llms_resp_json, key=lambda x: x["display_name"].lower())
-    # Create options as (display_name, name) pairs for display/value separation
-    model_options = [(llm["display_name"], llm["name"]) for llm in llms_sorted]
-    name_to_display = {llm["name"]: llm["display_name"] for llm in llms_sorted}
-    names = [llm["name"] for llm in llms_sorted]
-
+    
+    model_options = [(llm["display_name"], llm["name"]) for llm in llms_sorted if llm["name"] in [agent_llm["name"] for agent_llm in agent_llms]]
+    name_to_display = {llm["name"]: llm["display_name"] for llm in llms_sorted if llm["name"] in [agent_llm["name"] for agent_llm in agent_llms]}
+    names = [llm["name"] for llm in llms_sorted if llm["name"] in [agent_llm["name"] for agent_llm in agent_llms]]
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
@@ -118,6 +116,8 @@ class AssistantPage:
     def display(self):
         agent_resp_json = make_request.get(endpoint=api_conf.agent_endpoint + "default")
         agent_name = agent_resp_json.get("name", None)
+        agent_llms = agent_resp_json.get("llm_ids", None)
+
         if agent_name is not None:
             st.session_state.agent_name = agent_name
             st.session_state.agent_display_name = agent_resp_json.get("display_name", None)
@@ -132,7 +132,11 @@ class AssistantPage:
 
         init_session_state()
 
-        chat_model = render_model_selector()
+        if agent_llms is not None:
+            chat_model_selected = render_model_selector(agent_llms)
+        else:
+            st.error("No LLMs found for the agent.")
+            st.stop()
 
         msgs = StreamlitChatMessageHistory(key="chat_history")
 
@@ -188,7 +192,7 @@ class AssistantPage:
             with st.chat_message("assistant", avatar=st.session_state.get("agent_logo_path", app_conf.agent_logo_path)):
                 placeholder = st.empty()
                 full_response = ""
-                for chunk in make_request.stream_chat_completions(agent_name=st.session_state.agent_name, chat_model=chat_model, history=msgs, prompt=prompt, attachments=attachments):
+                for chunk in make_request.stream_chat_completions(agent_name=st.session_state.agent_name, chat_model=chat_model_selected, history=msgs, prompt=prompt, attachments=attachments):
                     full_response += chunk
                     placeholder.markdown(full_response + "▌")
                 placeholder.markdown(full_response)

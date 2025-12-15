@@ -32,20 +32,30 @@ class AgentPage:
         return self.app_conf.agent_logo_folder_path / logo_filename
     
     def flexible_agent_dialog(self, agent: dict):
-        # Fetch enabled LLMs and sort them
-        llms_resp_json = self.make_request.get(endpoint=self.api_conf.llm_endpoint + "enabled")
+        # Fetch LLMs and sort them
+        llms_resp_json = self.make_request.get(endpoint=self.api_conf.llm_endpoint)
         llms_sorted = sorted(llms_resp_json, key=lambda x: x["display_name"].lower())
 
-        # Map LLM name -> display_name and display_name -> LLM dict for quick lookup
-        llm_name_to_display = {llm["name"]: llm["display_name"] for llm in llms_sorted}
-        llm_display_to_name = {llm["display_name"]: llm["name"] for llm in llms_sorted}
-        all_llm_display_names = [llm["display_name"] for llm in llms_sorted]
-        
-        tools_resp_json = self.make_request.get(endpoint=self.api_conf.tool_endpoint + "enabled")
+        # Create display names with status
+        def llm_display_with_status(llm):
+            status_emoji = "🟢" if llm.get("status") == "enable" else "🔴"
+            return f"{status_emoji} {llm['display_name']}"
+
+        # Map LLM name <-> display (with status) and vice versa
+        llm_name_to_display = {llm["name"]: llm_display_with_status(llm) for llm in llms_sorted}
+        llm_display_to_name = {llm_display_with_status(llm): llm["name"] for llm in llms_sorted}
+        all_llm_display_names = [llm_display_with_status(llm) for llm in llms_sorted]
+
+        tools_resp_json = self.make_request.get(endpoint=self.api_conf.tool_endpoint)
         tools_sorted = sorted(tools_resp_json, key=lambda x: x["display_name"].lower())
-        tool_name_to_display = {tool["name"]: tool["display_name"] for tool in tools_sorted}
-        tool_display_to_name = {tool["display_name"]: tool["name"] for tool in tools_sorted}
-        all_tool_display_names = [tool["display_name"] for tool in tools_sorted]
+        # Tool display with status
+        def tool_display_with_status(tool):
+            status_emoji = "🟢" if tool.get("status") == "enable" else "🔴"
+            return f"{status_emoji} {tool['display_name']}"
+
+        tool_name_to_display = {tool["name"]: tool_display_with_status(tool) for tool in tools_sorted}
+        tool_display_to_name = {tool_display_with_status(tool): tool["name"] for tool in tools_sorted}
+        all_tool_display_names = [tool_display_with_status(tool) for tool in tools_sorted]
 
         agent_logo_path = self.create_agent_logo_path(agent['logo'])
         base64_logo = base64.b64encode(open(agent_logo_path, "rb").read()).decode("utf-8")
@@ -103,7 +113,7 @@ class AgentPage:
                 if match:
                     agent_llm_names.append(match)
 
-        # Build default as display_names list
+        # Build default as [display_name (with status)] list
         default_llm_display_names = [llm_name_to_display[name] for name in agent_llm_names if name in llm_name_to_display]
 
         select_llm_for_agent = st.multiselect(
@@ -131,8 +141,9 @@ class AgentPage:
                 if match:
                     agent_tool_names.append(match)
 
+        # Build default as [tool display_name (with status)] list
         default_tool_display_names = [tool_name_to_display[name] for name in agent_tool_names if name in tool_name_to_display]
-        
+
         select_tools_for_agent = st.multiselect(
             "Select Tools for Agent:",
             options=all_tool_display_names,
@@ -176,7 +187,8 @@ class AgentPage:
                     "tools": [
                         {
                             "id": tool_item["id"],
-                            "name": tool_item["name"]
+                            "name": tool_item["name"],
+                            "status": tool_item.get("status", None)
                         }
                         for tool_item in tools_sorted 
                         if tool_item["name"] in selected_tool_names
@@ -197,7 +209,6 @@ class AgentPage:
 
             st.success("Agent configuration updated successfully.")
             st.rerun()
-
     def render_agent_card(self, agent: dict):
         agent_id = agent["id"]
         card_key = f"agent_card_{agent_id}"
