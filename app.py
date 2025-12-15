@@ -50,21 +50,41 @@ class App:
 
         if st.session_state.get("authentication_status") or check_user_login(extend_key="app-check-login"):
             user_info = get_user_info(extend_key="app-after-auth")
+            
+            if user_info.get("role") == "administrator":
+                st.session_state["is_admin"] = True
+            elif user_info.get("role") == "maintainer":
+                st.session_state["is_maintainer"] = True
+            else:
+                st.session_state["is_user"] = True
 
             if st.session_state.get("chat_session_id") is None:
                 st.session_state["chat_session_id"] = uuid.uuid1()
 
-            pg = st.navigation({
-                "AI": [assistant_page],
-                "Manage": [llm_page, agent_page, tool_page, tag_page],
-                "Account": [user_page, role_page, logout_page],
-                "Pages": [blank_page],
-            }, position="top")
-
+            if st.session_state.get("is_admin"):
+                pg = st.navigation({
+                    "AI": [assistant_page],
+                    "Manage": [llm_page, agent_page, tool_page, tag_page],
+                    "Account": [user_page, role_page, logout_page],
+                    "Pages": [blank_page],
+                }, position="top")
+            elif st.session_state.get("is_maintainer"):
+                pg = st.navigation({
+                    "AI": [assistant_page],
+                    "Manage": [llm_page, agent_page, tool_page, tag_page],
+                    "Account": [logout_page],
+                    "Pages": [blank_page],
+                }, position="top")
+            else:
+                pg = st.navigation({
+                    "AI": [assistant_page],
+                    "Login": [login_page]
+                }, position="top")
         else:
             pg = st.navigation({
-                "Account": [login_page]
-            })
+                "AI": [assistant_page],
+                "Login": [login_page]
+            }, position="top")
 
         pg.run()
 

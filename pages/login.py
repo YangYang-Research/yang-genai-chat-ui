@@ -40,12 +40,16 @@ class LoginPage:
                     st.error("Please enter username and password.")
                     return
 
-                resp_json = self.make_request.post(endpoint=self.api_conf.login_endpoint, data={
+                resp_json, status_code = self.make_request.post(endpoint=self.api_conf.login_endpoint, data={
                     "username": username_input,
                     "password": password_input
                 })
-
-                jwt_token = resp_json.get("jwt_token")
+    
+                if status_code == 200:
+                    jwt_token = resp_json.get("jwt_token")
+                else:
+                    st.error("Username/password is incorrect")
+                    return
 
                 user_info = verify_jwt_token(jwt_token)
 
