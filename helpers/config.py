@@ -59,6 +59,7 @@ class APIConfig(object):
     agent_endpoint: str = "agents/"
     llm_endpoint: str = "llms/"
     user_endpoint: str = "users/"
+    role_endpoint: str = "roles/"
     tool_endpoint: str = "tools/"
     tag_endpoint:str = "tags/"
     login_endpoint: str = "authentication/login"

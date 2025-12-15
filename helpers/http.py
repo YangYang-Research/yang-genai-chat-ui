@@ -141,7 +141,7 @@ class MakeRequest(object):
         }        
         try:
             response = requests.get(self.api_conf.api_service + endpoint, headers=headers, params=param, timeout=self.api_conf.api_timeout_seconds)
-            return response.json()
+            return response.json(), response.status_code
         except requests.exceptions.RequestException as e:
             logger.error(f"[FE->BE] GET error: {e}")
     
@@ -155,7 +155,7 @@ class MakeRequest(object):
         }        
         try:
             response = requests.post(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
-            return response.json()
+            return response.json(), response.status_code
         except requests.exceptions.RequestException as e:
             logger.error(f"[FE->BE] GET error: {e}")
     
@@ -169,6 +169,20 @@ class MakeRequest(object):
         }        
         try:
             response = requests.put(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
-            return response.json()
+            return response.json(), response.status_code
         except requests.exceptions.RequestException as e:
             logger.error(f"[FE->BE] GET error: {e}")
+
+    def delete(self, endpoint: str):
+        """
+        Send a DELETE request to the specified endpoint.
+        """
+        headers = {
+            "Content-Type": "application/json",
+            "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
+        }        
+        try:
+            response = requests.delete(self.api_conf.api_service + endpoint, headers=headers, timeout=self.api_conf.api_timeout_seconds)
+            return response.json(), response.status_code
+        except requests.exceptions.RequestException as e:
+            logger.error(f"[FE->BE] DELETE error: {e}")

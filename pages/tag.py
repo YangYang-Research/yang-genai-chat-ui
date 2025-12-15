@@ -9,17 +9,6 @@ class TagPage:
         self.api_conf = APIConfig()
         self.make_request = MakeRequest()
 
-    def on_change_tags_dataframe(self):
-        # Access the changes from the data editor's session state
-        tags_dataframe = st.session_state["tags_dataframe"]
-        edited_rows = tags_dataframe.get("edited_rows")
-        print(edited_rows)
-        # if edited_rows:
-        #     for index, updates in edited_rows.items():
-        #         for key, value in updates.items():
-        #             tags_dataframe.loc[tags_dataframe.index == index, key] = value
-        #             st.write(f"Tag {index} status changed to {value}")
-
     def display(self):
         st.title("Tags")
         st.caption(
@@ -41,28 +30,64 @@ class TagPage:
                 width="stretch",
                 hide_index=True,
             )
-            selected_cells = dataframe.selection.cells
-            if selected_cells:
-                row_index, col_name = selected_cells[0]
-                row_data = tags_df.iloc[row_index].to_dict()
-                
-                st.markdown(f"## Update Tag:")
+            tab1, tab2, tab3 = st.tabs(["Create Tag", "Update Tag", "Delete Tag"])
+            with tab1:
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    input_tag = st.text_input("Tag:", key=f"tag_{row_data['ID']}", value=row_data['Tag'], help="The tag.")
+                    input_tag = st.text_input("Tag:", key=f"tag_create", help="The tag.")
                     input_status = st.selectbox("Select Status:", 
                         options=["enable", "disable"],
-                        index=0 if row_data['Status'] == "enable" else 1,
-                        key=f"status_{row_data['ID']}", 
-                        help="The status to change the tag to."
+                        index=0,
+                        key=f"status_create", 
+                        help="The status to create the tag with."
                     )
-                    if st.button("Save", key=f"save_{row_data['ID']}"):
+                    if st.button("Create", key=f"create_tag"):
                         payload = {
                             "tag": input_tag,
                             "status": input_status,
+                            "trashed": False,
                         }
-                        resp_json = self.make_request.put(endpoint=self.api_conf.tag_endpoint + str(row_data['ID']), data=payload)
-                        st.success("Tag status updated successfully.")
+                        resp_json = self.make_request.post(endpoint=self.api_conf.tag_endpoint, data=payload)
+                        st.success("Tag created successfully.")
+                        st.rerun()
+            with tab2:
+                header = st.empty()
+                header.caption("Select tag in the table to update.")
+                selected_cells = dataframe.selection.cells
+                if selected_cells:
+                    header.empty()
+                    row_index, col_name = selected_cells[0]
+                    row_data = tags_df.iloc[row_index].to_dict()
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        input_tag = st.text_input("Tag:", key=f"tag_{row_data['ID']}", value=row_data['Tag'], help="The tag.")
+                        input_status = st.selectbox("Select Status:", 
+                            options=["enable", "disable"],
+                            index=0 if row_data['Status'] == "enable" else 1,
+                            key=f"status_{row_data['ID']}", 
+                            help="The status to change the tag to."
+                        )
+                        if st.button("Update", key=f"update_tag_{row_data['ID']}"):
+                            payload = {
+                                "tag": input_tag,
+                                "status": input_status,
+                                "trashed": False,
+                            }
+                            resp_json = self.make_request.put(endpoint=self.api_conf.tag_endpoint + str(row_data['ID']), data=payload)
+                            st.success("Tag status updated successfully.")
+                            st.rerun()
+            with tab3:
+                header = st.empty()
+                header.caption("Select tag in the table to delete.")
+                selected_cells = dataframe.selection.cells
+                if selected_cells:
+                    header.empty()
+                    row_index, col_name = selected_cells[0]
+                    row_data = tags_df.iloc[row_index].to_dict()
+                    st.warning(f"Are you sure you want to delete tag: **{row_data['Tag']}**?")
+                    if st.button("Delete", key=f"delete_tag_{row_data['ID']}"):
+                        resp_json = self.make_request.delete(endpoint=self.api_conf.tag_endpoint + str(row_data['ID']))
+                        st.success("Tag deleted successfully.")
                         st.rerun()
         else:
             st.info("No tags found.")

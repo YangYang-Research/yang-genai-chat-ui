@@ -41,6 +41,7 @@ class App:
         tag_page = st.Page("pages/tag.py", title="Tags", icon="🏷️", url_path="/tags")
 
         user_page = st.Page("pages/user.py", title="User", icon="👤", url_path="/user")
+        role_page = st.Page("pages/role.py", title="Role", icon="👤", url_path="/role")
 
         blank_page = st.Page("pages/blank.py", title="Blank", icon="📄", url_path="/blank")
 
@@ -56,7 +57,7 @@ class App:
             pg = st.navigation({
                 "AI": [assistant_page],
                 "Manage": [llm_page, agent_page, tool_page, tag_page],
-                "Account": [user_page, logout_page],
+                "Account": [user_page, role_page, logout_page],
                 "Pages": [blank_page],
             }, position="top")
 
