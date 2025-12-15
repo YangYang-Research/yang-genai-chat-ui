@@ -49,7 +49,7 @@ def save_feedback(message_index: int):
     logger.info(f"[Feedback] Message {message_index} => {user_feedback}")
     try:
         if message_content:
-            make_request.post(
+            resp_json, status_code = make_request.post(
                 endpoint=api_conf.chat_feedback_endpoint,
                 data={
                     "message_index": message_index,
@@ -64,7 +64,7 @@ def save_feedback(message_index: int):
 
 def render_model_selector(agent_llms: list):
     """Render model selector with session persistence."""
-    llms_resp_json = make_request.get(endpoint=api_conf.llm_endpoint + "enabled")
+    llms_resp_json, _ = make_request.get(endpoint=api_conf.llm_endpoint + "enabled")
     llms_sorted = sorted(llms_resp_json, key=lambda x: x["display_name"].lower())
     
     model_options = [(llm["display_name"], llm["name"]) for llm in llms_sorted if llm["name"] in [agent_llm["name"] for agent_llm in agent_llms]]
@@ -114,7 +114,7 @@ class AssistantPage:
         pass
     
     def display(self):
-        agent_resp_json = make_request.get(endpoint=api_conf.agent_endpoint + "default")
+        agent_resp_json, _ = make_request.get(endpoint=api_conf.agent_endpoint + "default")
         agent_name = agent_resp_json.get("name", None)
         agent_llms = agent_resp_json.get("llm_ids", None)
 

@@ -15,7 +15,7 @@ class TagPage:
             "Configure the tags available for your AI assistant.",
             help="Tags allow your AI assistant to categorize and filter its responses."
         )
-        resp_json = self.make_request.get(endpoint=self.api_conf.tag_endpoint)
+        resp_json, _ = self.make_request.get(endpoint=self.api_conf.tag_endpoint)
         tags_sorted = sorted(resp_json, key=lambda x: x["id"])
 
         if tags_sorted:
@@ -47,9 +47,13 @@ class TagPage:
                             "status": input_status,
                             "trashed": False,
                         }
-                        resp_json = self.make_request.post(endpoint=self.api_conf.tag_endpoint, data=payload)
-                        st.success("Tag created successfully.")
-                        st.rerun()
+                        resp_json, status_code = self.make_request.post(endpoint=self.api_conf.tag_endpoint, data=payload)
+                        if status_code == 201:
+                            st.success("Tag created successfully.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to create tag. Traceback: " + resp_json.get("detail"))
+                            st.rerun()
             with tab2:
                 header = st.empty()
                 header.caption("Select tag in the table to update.")
@@ -73,9 +77,13 @@ class TagPage:
                                 "status": input_status,
                                 "trashed": False,
                             }
-                            resp_json = self.make_request.put(endpoint=self.api_conf.tag_endpoint + str(row_data['ID']), data=payload)
-                            st.success("Tag status updated successfully.")
-                            st.rerun()
+                            resp_json, status_code = self.make_request.put(endpoint=self.api_conf.tag_endpoint + str(row_data['ID']), data=payload)
+                            if status_code == 200:
+                                st.success("Tag status updated successfully.")
+                                st.rerun()
+                            else:
+                                st.error("Failed to update tag. Traceback: " + resp_json.get("detail"))
+                                st.rerun()
             with tab3:
                 header = st.empty()
                 header.caption("Select tag in the table to delete.")
@@ -86,9 +94,13 @@ class TagPage:
                     row_data = tags_df.iloc[row_index].to_dict()
                     st.warning(f"Are you sure you want to delete tag: **{row_data['Tag']}**?")
                     if st.button("Delete", key=f"delete_tag_{row_data['ID']}"):
-                        resp_json = self.make_request.delete(endpoint=self.api_conf.tag_endpoint + str(row_data['ID']))
-                        st.success("Tag deleted successfully.")
-                        st.rerun()
+                        resp_json, status_code = self.make_request.delete(endpoint=self.api_conf.tag_endpoint + str(row_data['ID']))
+                        if status_code == 204:
+                            st.success("Tag deleted successfully.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete tag. Traceback: " + resp_json.get("detail"))
+                            st.rerun()
         else:
             st.info("No tags found.")
 

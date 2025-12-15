@@ -95,17 +95,16 @@ class LLMPage:
                     "trashed": False,
                 }
 
-            resp_json = self.make_request.put(endpoint=self.api_conf.llm_endpoint + str(llm["id"]), data=payload)
-            llm_id = resp_json.get("id", None)
-            if llm_id is None:
-                st.error("Failed to update LLM configuration.")
-                return
+            resp_json, status_code = self.make_request.put(endpoint=self.api_conf.llm_endpoint + str(llm["id"]), data=payload)
+            if status_code == 200:
+                st.session_state["llm_dialog_open"] = False
+                st.session_state["current_model"] = None
 
-            st.session_state["llm_dialog_open"] = False
-            st.session_state["current_model"] = None
-
-            st.success("LLM configuration updated successfully.")
-            st.rerun()
+                st.success("LLM configuration updated successfully.")
+                st.rerun()
+            else:
+                st.error("Failed to update LLM configuration. Traceback: " + resp_json.get("detail"))
+                st.rerun()
 
     def render_llm_card(self, llm: dict):
         llm_id = llm["id"]
@@ -140,7 +139,7 @@ class LLMPage:
     def display(self):
         st.title("🧠 LLMs")
         st.caption("Configure the LLMs available for your AI assistant.", help="LLMs allow your AI assistant to access external information and services to enhance its capabilities.")
-        resp_json = self.make_request.get(endpoint=self.api_conf.llm_endpoint)
+        resp_json, _ = self.make_request.get(endpoint=self.api_conf.llm_endpoint)
         llms_sorted = sorted(resp_json, key=lambda x: x["display_name"].lower())
         cols = st.columns(3)
         for i, llm in enumerate(llms_sorted):

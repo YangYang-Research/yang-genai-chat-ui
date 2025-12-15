@@ -33,7 +33,7 @@ class AgentPage:
     
     def flexible_agent_dialog(self, agent: dict):
         # Fetch LLMs and sort them
-        llms_resp_json = self.make_request.get(endpoint=self.api_conf.llm_endpoint)
+        llms_resp_json, _ = self.make_request.get(endpoint=self.api_conf.llm_endpoint)
         llms_sorted = sorted(llms_resp_json, key=lambda x: x["display_name"].lower())
 
         # Create display names with status
@@ -46,7 +46,7 @@ class AgentPage:
         llm_display_to_name = {llm_display_with_status(llm): llm["name"] for llm in llms_sorted}
         all_llm_display_names = [llm_display_with_status(llm) for llm in llms_sorted]
 
-        tools_resp_json = self.make_request.get(endpoint=self.api_conf.tool_endpoint)
+        tools_resp_json, _ = self.make_request.get(endpoint=self.api_conf.tool_endpoint)
         tools_sorted = sorted(tools_resp_json, key=lambda x: x["display_name"].lower())
         # Tool display with status
         def tool_display_with_status(tool):
@@ -198,17 +198,16 @@ class AgentPage:
                     "status": "enable" if is_enable else "disable",
                     "trashed": False,
                 }
-            resp_json = self.make_request.put(endpoint=self.api_conf.agent_endpoint + str(agent["id"]), data=payload)
-            agent_id = resp_json.get("id", None)
-            if agent_id is None:
-                st.error("Failed to update agent configuration.")
-                return
-            
-            st.session_state["agent_dialog_open"] = False
-            st.session_state["current_agent"] = None
+            resp_json, status_code = self.make_request.put(endpoint=self.api_conf.agent_endpoint + str(agent["id"]), data=payload)
+            if status_code == 200:
+                st.session_state["agent_dialog_open"] = False
+                st.session_state["current_agent"] = None
 
-            st.success("Agent configuration updated successfully.")
-            st.rerun()
+                st.success("Agent configuration updated successfully.")
+                st.rerun()
+            else:
+                st.error("Failed to update agent configuration. Traceback: " + resp_json.get("detail"))
+                st.rerun()
     def render_agent_card(self, agent: dict):
         agent_id = agent["id"]
         card_key = f"agent_card_{agent_id}"
@@ -248,7 +247,7 @@ class AgentPage:
     def display(self):
         st.title("Agents")
         st.caption("Configure the agents available for your AI assistant.", help="Agents allow your AI assistant to access external information and services to enhance its capabilities.")
-        resp_json = self.make_request.get(endpoint=self.api_conf.agent_endpoint)
+        resp_json, _ = self.make_request.get(endpoint=self.api_conf.agent_endpoint)
         agents_sorted = sorted(resp_json, key=lambda x: x["display_name"].lower())
         cols = st.columns(3)
         for i, agent in enumerate(agents_sorted):

@@ -63,8 +63,8 @@ class UserPage:
                         "active_status": input_active_status,
                         "trashed": False,
                     }
-                    resp_json = self.make_request.post(endpoint=self.api_conf.user_endpoint, data=payload)
-                    if resp_json.get("id"):
+                    resp_json, status_code = self.make_request.post(endpoint=self.api_conf.user_endpoint, data=payload)
+                    if status_code == 201:
                         st.success("User created successfully.")
                         st.rerun()
                     else:

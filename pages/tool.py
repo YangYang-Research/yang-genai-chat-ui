@@ -105,18 +105,17 @@ class ToolPage:
                 "user_agent": input_user_agent if 'input_user_agent' in locals() else None
             }
 
-            resp_json = self.make_request.put(endpoint=self.api_conf.tool_endpoint + str(tool["id"]), data=payload)
-            tool_id = resp_json.get("id", None)
-            if tool_id is None:
-                st.error("Failed to update tool configuration.")
-                return
-            
-            st.session_state["tool_dialog_open"] = False
-            st.session_state["current_tool"] = None
-            st.session_state["tool_dialog_type"] = None
+            resp_json, status_code = self.make_request.put(endpoint=self.api_conf.tool_endpoint + str(tool["id"]), data=payload)
+            if status_code == 200:
+                st.session_state["tool_dialog_open"] = False
+                st.session_state["current_tool"] = None
+                st.session_state["tool_dialog_type"] = None
 
-            st.success("Tool configuration updated successfully.")
-            st.rerun()
+                st.success("Tool configuration updated successfully.")
+                st.rerun()
+            else:
+                st.error("Failed to update tool configuration. Traceback: " + resp_json.get("detail"))
+                st.rerun()            
 
     def render_tool_card(self, tool: dict):
         tool_id = tool["id"]
@@ -162,7 +161,7 @@ class ToolPage:
     def display(self):
         st.title("🛠️ Tools")
         st.caption("Configure the tools available for your AI assistant.", help="Tools allow your AI assistant to access external information and services to enhance its capabilities.")
-        resp_json = self.make_request.get(endpoint=self.api_conf.tool_endpoint)
+        resp_json, _ = self.make_request.get(endpoint=self.api_conf.tool_endpoint)
         tools_sorted = sorted(resp_json, key=lambda x: x["display_name"].lower())
         cols = st.columns(4)
 

@@ -12,7 +12,7 @@ class RolePage:
     def display(self):
         st.title("Role Management")
         st.caption("Manage the roles of the system.", help="Roles are the permissions that users can have in the system.")
-        roles_resp_json = self.make_request.get(endpoint=self.api_conf.role_endpoint)
+        roles_resp_json, _ = self.make_request.get(endpoint=self.api_conf.role_endpoint)
         roles_sorted = sorted(roles_resp_json, key=lambda x: x["id"])
         if roles_sorted:
             roles_df = pd.DataFrame(roles_sorted, columns=["id", "name", "description", "status"])
@@ -45,9 +45,13 @@ class RolePage:
                             "status": input_status,
                             "trashed": False,
                         }
-                        resp_json = self.make_request.post(endpoint=self.api_conf.role_endpoint, data=payload)
-                        st.success("Role created successfully.")
-                        st.rerun()
+                        resp_json, status_code = self.make_request.post(endpoint=self.api_conf.role_endpoint, data=payload)
+                        if status_code == 201:
+                            st.success("Role created successfully.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to create role. Traceback: " + resp_json.get("detail"))
+                            st.rerun()
             with tab2:
                 header = st.empty()
                 header.caption("Select role in the table to update.")
@@ -73,9 +77,13 @@ class RolePage:
                             "status": input_status,
                             "trashed": False,
                         }
-                        resp_json = self.make_request.put(endpoint=self.api_conf.role_endpoint + str(row_data['ID']), data=payload)
-                        st.success("Role updated successfully.")
-                        st.rerun()
+                        resp_json, status_code = self.make_request.put(endpoint=self.api_conf.role_endpoint + str(row_data['ID']), data=payload)
+                        if status_code == 200:
+                            st.success("Role updated successfully.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to update role. Traceback: " + resp_json.get("detail"))
+                            st.rerun()
             with tab3:
                 header = st.empty()
                 header.caption("Select role in the table to delete.")
@@ -86,9 +94,13 @@ class RolePage:
                     row_data = roles_df.iloc[row_index].to_dict()
                     st.warning(f"Are you sure you want to delete role: **{row_data['Name']}**?")
                     if st.button("Delete", key=f"delete_role_{row_data['ID']}"):
-                        resp_json = self.make_request.delete(endpoint=self.api_conf.role_endpoint + str(row_data['ID']))
-                        st.success("Role deleted successfully.")
-                        st.rerun()
+                        resp_json, status_code = self.make_request.delete(endpoint=self.api_conf.role_endpoint + str(row_data['ID']))
+                        if status_code == 204:
+                            st.success("Role deleted successfully.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete role. Traceback: " + resp_json.get("detail"))
+                            st.rerun()
         else:
             st.info("No roles found.")
 
