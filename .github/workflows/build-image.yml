@@ -102,7 +102,7 @@ jobs:
 
       - name: Build and Push Multi-Arch Docker Image
         if: steps.check.outputs.skip_build == 'false'
-        continue-on-error: true
+        id: build
         env:
           IMAGE_NAME: public.ecr.aws/x7l7e7v1/yang-genai-chat-ui/${{ matrix.name }}
           RELEASE_VERSION: ${{ needs.check-release-version.outputs.release_version }}
@@ -112,19 +112,33 @@ jobs:
           
           if [ "$HAS_RELEASE" == "true" ] && [ -n "$RELEASE_VERSION" ]; then
             echo "📦 Tagging image with version: $RELEASE_VERSION and latest"
-            docker buildx build \
+            if docker buildx build \
               --platform linux/amd64,linux/arm64 \
               --push \
               -t "$IMAGE_NAME:$RELEASE_VERSION" \
               -t "$IMAGE_NAME:latest" \
-              .
+              .; then
+              echo "✅ Build and push completed successfully"
+              echo "build_success=true" >> "$GITHUB_OUTPUT"
+            else
+              BUILD_EXIT_CODE=$?
+              echo "❌ Build failed with exit code: $BUILD_EXIT_CODE"
+              exit $BUILD_EXIT_CODE
+            fi
           else
             echo "📦 Tagging image with: latest only"
-            docker buildx build \
+            if docker buildx build \
               --platform linux/amd64,linux/arm64 \
               --push \
               -t "$IMAGE_NAME:latest" \
-              .
+              .; then
+              echo "✅ Build and push completed successfully"
+              echo "build_success=true" >> "$GITHUB_OUTPUT"
+            else
+              BUILD_EXIT_CODE=$?
+              echo "❌ Build failed with exit code: $BUILD_EXIT_CODE"
+              exit $BUILD_EXIT_CODE
+            fi
           fi
 
                 
