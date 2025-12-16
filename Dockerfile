@@ -2,13 +2,17 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
+# Install system dependencies
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     software-properties-common \
     git \
     nginx \
     openssl \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .
