@@ -10,7 +10,7 @@ jobs:
     name: Check for "Release:" in commit message
     runs-on: ubuntu-latest
     outputs:
-      should_proceed: ${{ steps.check.outputs.should_proceed }}
+      has_release: ${{ steps.check.outputs.has_release }}
       release_version: ${{ steps.check.outputs.release_version }}
     steps:
       - name: Checkout
@@ -39,21 +39,18 @@ jobs:
               echo "📦 Extracted release version: $RELEASE_VERSION"
             fi
             
-            echo "should_proceed=true" >> $GITHUB_OUTPUT
+            echo "has_release=true" >> $GITHUB_OUTPUT
             echo "release_version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           else
-            echo "⛔ No 'Release:' found. Skipping workflow."
-            echo "should_proceed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No 'Release:' found. Will build with 'latest' tag only."
+            echo "has_release=false" >> $GITHUB_OUTPUT
+            echo "release_version=" >> $GITHUB_OUTPUT
           fi
           
-  
-  
-
   build-and-push-to-ecr:
     name: Build and Push Docker Images to ECR
     needs:
       - check-release-version
-    if: needs.check-release-version.outputs.should_proceed == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -84,13 +81,19 @@ jobs:
         env:
           IMAGE_NAME: public.ecr.aws/x7l7e7v1/yang-genai-chat-ui/${{ matrix.name }}
           RELEASE_VERSION: ${{ needs.check-release-version.outputs.release_version }}
+          HAS_RELEASE: ${{ needs.check-release-version.outputs.has_release }}
         run: |
-          echo "🔍 Checking image: $IMAGE_NAME:$RELEASE_VERSION"
-          if docker manifest inspect "$IMAGE_NAME:$RELEASE_VERSION" > /dev/null 2>&1; then
-            echo "⏩ Image $IMAGE_NAME:$RELEASE_VERSION already exists. Skipping build."
-            echo "skip_build=true" >> "$GITHUB_OUTPUT"
+          if [ "$HAS_RELEASE" == "true" ] && [ -n "$RELEASE_VERSION" ]; then
+            echo "🔍 Checking image: $IMAGE_NAME:$RELEASE_VERSION"
+            if docker manifest inspect "$IMAGE_NAME:$RELEASE_VERSION" > /dev/null 2>&1; then
+              echo "⏩ Image $IMAGE_NAME:$RELEASE_VERSION already exists. Skipping build."
+              echo "skip_build=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "✅ Image does not exist. Will proceed with build."
+              echo "skip_build=false" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "✅ Image does not exist. Will proceed with build."
+            echo "ℹ️  No release version specified. Will proceed with build (latest tag only)."
             echo "skip_build=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -103,14 +106,25 @@ jobs:
         env:
           IMAGE_NAME: public.ecr.aws/x7l7e7v1/yang-genai-chat-ui/${{ matrix.name }}
           RELEASE_VERSION: ${{ needs.check-release-version.outputs.release_version }}
+          HAS_RELEASE: ${{ needs.check-release-version.outputs.has_release }}
         run: |
-          echo "🔧 Building multi-arch $IMAGE_NAME:$RELEASE_VERSION for linux/amd64,linux/arm64"
-          echo "📦 Tagging image with version: $RELEASE_VERSION and latest"
-          docker buildx build \
-            --platform linux/amd64,linux/arm64 \
-            --push \
-            -t "$IMAGE_NAME:$RELEASE_VERSION" \
-            -t "$IMAGE_NAME:latest" \
-            .
+          echo "🔧 Building multi-arch image for linux/amd64,linux/arm64"
+          
+          if [ "$HAS_RELEASE" == "true" ] && [ -n "$RELEASE_VERSION" ]; then
+            echo "📦 Tagging image with version: $RELEASE_VERSION and latest"
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              -t "$IMAGE_NAME:$RELEASE_VERSION" \
+              -t "$IMAGE_NAME:latest" \
+              .
+          else
+            echo "📦 Tagging image with: latest only"
+            docker buildx build \
+              --platform linux/amd64,linux/arm64 \
+              --push \
+              -t "$IMAGE_NAME:latest" \
+              .
+          fi
 
                 
