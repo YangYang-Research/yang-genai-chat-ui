@@ -47,8 +47,8 @@ jobs:
             echo "release_version=" >> $GITHUB_OUTPUT
           fi
           
-  build-and-push-to-ecr:
-    name: Build and Push Docker Images to ECR
+  build-and-publish-to-container-registry:
+    name: Build and Publish Docker Images to Container Registry
     needs:
       - check-release-version
     runs-on: ubuntu-latest
@@ -76,10 +76,16 @@ jobs:
           registry-type: public
           mask-password: true
 
+      - name: Log in to GitHub Container Registry
+        env:
+          GH_ACTION_CR: ${{ secrets.GH_ACTION_CR }}
+        run: |
+          echo "$GH_ACTION_CR" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
       - name: Check if image version exists
         id: check
         env:
-          IMAGE_NAME: public.ecr.aws/x7l7e7v1/yang-genai-chat-ui/${{ matrix.name }}
+          IMAGE_NAME: public.ecr.aws/x7l7e7v1/${{ matrix.name }}
           RELEASE_VERSION: ${{ needs.check-release-version.outputs.release_version }}
           HAS_RELEASE: ${{ needs.check-release-version.outputs.has_release }}
         run: |
@@ -100,11 +106,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and Push Multi-Arch Docker Image
+      - name: Build and Publish Multi-Arch Docker Image
         if: steps.check.outputs.skip_build == 'false'
         id: build
         env:
-          IMAGE_NAME: public.ecr.aws/x7l7e7v1/yang-genai-chat-ui/${{ matrix.name }}
+          IMAGE_NAME: public.ecr.aws/x7l7e7v1/${{ matrix.name }}
+          GHCR_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}
           RELEASE_VERSION: ${{ needs.check-release-version.outputs.release_version }}
           HAS_RELEASE: ${{ needs.check-release-version.outputs.has_release }}
         run: |
@@ -112,11 +119,15 @@ jobs:
           
           if [ "$HAS_RELEASE" == "true" ] && [ -n "$RELEASE_VERSION" ]; then
             echo "📦 Tagging image with version: $RELEASE_VERSION and latest"
+            echo "📦 Pushing to ECR: $IMAGE_NAME"
+            echo "📦 Pushing to GHCR: $GHCR_IMAGE_NAME"
             if docker buildx build \
               --platform linux/amd64,linux/arm64 \
               --push \
               -t "$IMAGE_NAME:$RELEASE_VERSION" \
               -t "$IMAGE_NAME:latest" \
+              -t "$GHCR_IMAGE_NAME:$RELEASE_VERSION" \
+              -t "$GHCR_IMAGE_NAME:latest" \
               .; then
               echo "✅ Build and push completed successfully"
               echo "build_success=true" >> "$GITHUB_OUTPUT"
@@ -127,10 +138,13 @@ jobs:
             fi
           else
             echo "📦 Tagging image with: latest only"
+            echo "📦 Pushing to ECR: $IMAGE_NAME"
+            echo "📦 Pushing to GHCR: $GHCR_IMAGE_NAME"
             if docker buildx build \
               --platform linux/amd64,linux/arm64 \
               --push \
               -t "$IMAGE_NAME:latest" \
+              -t "$GHCR_IMAGE_NAME:latest" \
               .; then
               echo "✅ Build and push completed successfully"
               echo "build_success=true" >> "$GITHUB_OUTPUT"
