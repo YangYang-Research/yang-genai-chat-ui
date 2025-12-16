@@ -1,9 +1,9 @@
-# Cell - GenAi Chat Ui
+# Yang - GenAi Chat Ui
 
 <p align="center">
-  <img width="200" height="200" alt="4728532" src="https://github.com/user-attachments/assets/f2750d5d-a74f-49c2-ac48-d131f27b80f2" />
+  <img width="200" height="200" alt="YangYang_Full_Merge" src="https://github.com/user-attachments/assets/32c60a01-62f4-4951-aea3-ef9e279d7e28" />
 </p>
-<h3><p align="center">Cell — A lightweight, extensible GenAI chat UI built for speed, simplicity, and seamless integration.</p></h3>
+<h3><p align="center">Yang — A lightweight, extensible GenAI chat UI built for speed, simplicity, and seamless integration.</p></h3>
 
 # TechStack
 
