@@ -111,10 +111,13 @@ jobs:
         id: build
         env:
           IMAGE_NAME: public.ecr.aws/x7l7e7v1/${{ matrix.name }}
-          GHCR_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}
           RELEASE_VERSION: ${{ needs.check-release-version.outputs.release_version }}
           HAS_RELEASE: ${{ needs.check-release-version.outputs.has_release }}
         run: |
+          # Convert repository owner to lowercase for Docker image name
+          REPO_OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          GHCR_IMAGE_NAME="ghcr.io/${REPO_OWNER_LOWER}/${{ matrix.name }}"
+          
           echo "🔧 Building multi-arch image for linux/amd64,linux/arm64"
           
           if [ "$HAS_RELEASE" == "true" ] && [ -n "$RELEASE_VERSION" ]; then
