@@ -1,6 +1,5 @@
 streamlit
 PyJWT
-streamlit_authenticator
 extra_streamlit_components
 pytest>=7.4.0
 pytest-mock>=3.11.0

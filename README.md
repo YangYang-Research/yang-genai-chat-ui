@@ -25,7 +25,6 @@ Yang is a modern, feature-rich chat interface for Generative AI applications. Bu
 
 ### Frontend
 - **Streamlit** - Web application framework
-- **Streamlit Authenticator** - User authentication
 - **Extra Streamlit Components** - Enhanced UI components
 
 ### Backend
