@@ -84,11 +84,7 @@ Yang is a modern, feature-rich chat interface for Generative AI applications. Bu
    - IAM role (if running on EC2)
 
 7. **Create AWS Secret Manager**
-   
-   Create a secret manager in AWS with the name `yang-genai-chat-secret`.
-   ```bash
-   base64
-   ```
+
    ```bash
    aws secretsmanager create-secret --name yang-genai-chat-secret --secret-string '{"app_jwt_key": "your-generated-jwt-secret-key", "api_auth_key": "your-generated-api-auth-key-name", "db_username": "your-db-username", "db_password": "your-db-password"}' --region us-east-1
    ```

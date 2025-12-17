@@ -1,7 +1,6 @@
 streamlit
 PyJWT
 extra_streamlit_components
-requests
 boto3
 python-dotenv
 pydantic

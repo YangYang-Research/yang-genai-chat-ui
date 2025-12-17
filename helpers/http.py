@@ -1,4 +1,4 @@
-import requests
+import httpx
 import streamlit as st
 from helpers.loog import logger
 from helpers.secret import AWSSecretManager
@@ -106,12 +106,12 @@ class MakeRequest(object):
         }
 
         try:
-            with requests.post(self.api_conf.api_service + self.api_conf.chat_agent_completions_endpoint, headers=headers, json=payload, stream=True, timeout=self.api_conf.api_timeout_seconds) as r:
+            with httpx.stream("POST", self.api_conf.api_service + self.api_conf.chat_agent_completions_endpoint, headers=headers, json=payload, timeout=self.api_conf.api_timeout_seconds) as r:
                 r.raise_for_status()
-                for chunk in r.iter_content(chunk_size=None):
+                for chunk in r.iter_bytes(chunk_size=None):
                     if chunk:
-                        yield chunk.decode("utf-8")
-        except requests.exceptions.RequestException as e:
+                        yield chunk.decode('utf-8')
+        except httpx.HTTPError as e:
             logger.error(f"[FE->BE] Stream error: {e}")
             yield f"\n[Error] Unable connect to backend service. Please try again."
     
@@ -124,10 +124,10 @@ class MakeRequest(object):
             "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
         }
         try:
-            response = requests.post(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
+            response = httpx.stream("POST", self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
             response.raise_for_status()
             return response.json()
-        except requests.exceptions.RequestException as e:
+        except httpx.HTTPError as e:
             logger.error(f"[FE->BE] POST error: {e}")
             yield f"\n[Error] Unable connect to backend service. Please try again."
     
@@ -140,9 +140,9 @@ class MakeRequest(object):
             "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
         }        
         try:
-            response = requests.get(self.api_conf.api_service + endpoint, headers=headers, params=param, timeout=self.api_conf.api_timeout_seconds)
+            response = httpx.get(self.api_conf.api_service + endpoint, headers=headers, params=param, timeout=self.api_conf.api_timeout_seconds)
             return response.json(), response.status_code
-        except requests.exceptions.RequestException as e:
+        except httpx.HTTPError as e:
             logger.error(f"[FE->BE] GET error: {e}")
     
     def post(self, endpoint: str, data: dict):
@@ -154,10 +154,10 @@ class MakeRequest(object):
             "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
         }        
         try:
-            response = requests.post(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
+            response = httpx.post(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
             return response.json(), response.status_code
-        except requests.exceptions.RequestException as e:
-            logger.error(f"[FE->BE] GET error: {e}")
+        except httpx.HTTPError as e:
+            logger.error(f"[FE->BE] PUT error: {e}")
     
     def put(self, endpoint: str, data: dict):
         """
@@ -168,9 +168,9 @@ class MakeRequest(object):
             "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
         }        
         try:
-            response = requests.put(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
+            response = httpx.put(self.api_conf.api_service + endpoint, headers=headers, json=data, timeout=self.api_conf.api_timeout_seconds)
             return response.json(), response.status_code
-        except requests.exceptions.RequestException as e:
+        except httpx.HTTPError as e:
             logger.error(f"[FE->BE] GET error: {e}")
 
     def delete(self, endpoint: str):
@@ -182,7 +182,7 @@ class MakeRequest(object):
             "x-yang-auth": f"Basic {self.aws_secret_manager.get_secret(self.api_conf.api_auth_key_name)}",
         }        
         try:
-            response = requests.delete(self.api_conf.api_service + endpoint, headers=headers, timeout=self.api_conf.api_timeout_seconds)
+            response = httpx.delete(self.api_conf.api_service + endpoint, headers=headers, timeout=self.api_conf.api_timeout_seconds)
             return response.json(), response.status_code
-        except requests.exceptions.RequestException as e:
+        except httpx.HTTPError as e:
             logger.error(f"[FE->BE] DELETE error: {e}")

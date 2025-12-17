@@ -32,8 +32,8 @@ class LoginPage:
                 unsafe_allow_html=True,
             )
 
-            username_input = st.text_input("Username", value="")
-            password_input = st.text_input("Password", type="password", value="")
+            username_input = st.text_input("Username")
+            password_input = st.text_input("Password", type="password")
 
             if st.button("Login"):
                 if not username_input or not password_input:
