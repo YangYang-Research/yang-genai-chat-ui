@@ -23,7 +23,7 @@ class AppConfig(object):
     log_max_size: int = int(os.getenv("LOG_MAX_SIZE", "10000000"))  # in bytes
     log_max_backups: int = int(os.getenv("LOG_MAX_BACKUPS", "5"))  # number of backup files
     
-    jwt_key_name: str = os.getenv("JWT_KEY_NAME", "cell_jwt_secret_key")
+    app_jwt_key_name: str = os.getenv("APP_JWT_KEY_NAME", "")
 
 class FileConfig(BaseModel):
     allowed_file_types: list[str] = Field(

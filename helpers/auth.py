@@ -10,7 +10,7 @@ aws_conf = AWSConfig()
 aws_secret_manager = AWSSecretManager()
 cookie_manager = stx.CookieManager()
 
-jwt_secret_key = aws_secret_manager.get_secret(app_conf.jwt_key_name)
+jwt_secret_key = aws_secret_manager.get_secret(app_conf.app_jwt_key_name)
 
 def create_jwt_cookie(jwt_token: str):
     cookie_manager.set(

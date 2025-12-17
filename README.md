@@ -51,7 +51,7 @@ Yang is a modern, feature-rich chat interface for Generative AI applications. Bu
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/yang-genai-chat-ui.git
+   git clone https://github.com/YangYang-Research/yang-genai-chat-ui.git
    cd yang-genai-chat-ui
    ```
 
@@ -66,39 +66,53 @@ Yang is a modern, feature-rich chat interface for Generative AI applications. Bu
    pip install -r requirements.txt
    ```
 
-4. **Configure AWS credentials**
+4. **Generate JWT secret key**
+   ```bash
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
+
+5. **Generate API auth key**
+   ```bash
+   python -c "import secrets; import base64; print(base64.b64encode(secrets.token_bytes(32)).decode('utf-8'))"
+   ```
+
+6. **Configure AWS credentials**
    
    Ensure your AWS credentials are configured via:
    - AWS CLI: `aws configure`
    - Environment variables: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
    - IAM role (if running on EC2)
 
-5. **Create AWS Secret Manager**
+7. **Create AWS Secret Manager**
    
    Create a secret manager in AWS with the name `yang-genai-chat-secret`.
    ```bash
-   aws secretsmanager create-secret --name yang-genai-chat-secret --secret-string '{"jwt_key": "your-jwt-secret-key", "api_auth_key": "your-api-auth-key-name"}' --region us-east-1
+   base64
+   ```
+   ```bash
+   aws secretsmanager create-secret --name yang-genai-chat-secret --secret-string '{"app_jwt_key": "your-generated-jwt-secret-key", "api_auth_key": "your-generated-api-auth-key-name", "db_username": "your-db-username", "db_password": "your-db-password"}' --region us-east-1
    ```
 
-6. **Configure Yang-GenAI-Chat-Service**
+8. **Configure Yang-GenAI-Chat-Service**
 
    Follow the instructions in the [Yang-GenAI-Chat-Service](https://github.com/YangYang-Research/yang-genai-chat-service) repository to configure the service.
 
-7. **Configure environment variables**
+9. **Configure environment variables**
    
-  Copy `.env.example` to `.env` and update the values.
+  Copy the `.env.example` file to `.env` and configure the environment variables.
   ```bash
   cp .env.example .env
   ```
 
-  Update the values in the `.env` file.
-  ```bash
+  Configure the environment variables.
+  ```env
   AWS_REGION=us-east-1
   AWS_SECRET_NAME=yang-genai-chat-secret
   API_SERVICE=http://localhost:8000/v1/ # Yang-GenAI-Chat-Service API service URL
   API_AUTH_KEY_NAME=api_auth_key
-  JWT_KEY_NAME=jwt_key
-  ...other values...
+  APP_JWT_KEY_NAME=app_jwt_key
+  
+  ... other environment variables ...
   ```
 
 ## Usage
