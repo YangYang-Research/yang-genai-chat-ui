@@ -346,3 +346,5 @@ class TestMakeRequest:
             result = make_request.delete("/test/endpoint")
             
             assert result is None
+
+

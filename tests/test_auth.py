@@ -237,3 +237,5 @@ class TestLoginFunctions:
         
         assert result == {"username": "session_user"}
         mock_create_cookie.assert_called_once_with({"username": "session_user"})
+
+

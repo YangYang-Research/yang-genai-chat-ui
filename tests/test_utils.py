@@ -321,3 +321,5 @@ class TestUtils:
         assert isinstance(uuid_str, str)
         assert len(uuid_str) == 36  # UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
         assert uuid_str.count('-') == 4
+
+

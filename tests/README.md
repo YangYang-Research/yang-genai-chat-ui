@@ -65,3 +65,5 @@ The tests aim to cover:
 - Tests use mocking to avoid external dependencies (AWS, API calls, Streamlit)
 - Some tests require proper mocking of Streamlit session state
 - JWT tests use a test secret key for validation
+
+
